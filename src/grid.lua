@@ -54,7 +54,9 @@ function Grid:draw(x, y)
   love.graphics.push("all")
   for r = 0, self.height do
     for c = 0, self.width do
-      self.items[r][c]:draw(x + (c * self.cellSize), y + (r * self.cellSize))
+      if self.items[r][c] then
+        self.items[r][c]:draw(x + (c * self.cellSize), y + (r * self.cellSize))
+      end
     end
   end
   love.graphics.pop()

@@ -25,7 +25,7 @@ local function validWord(word)
   return true
 end
 
-function Dictionary.new(maxLength, minLength)
+function Dictionary.new(minLength, maxLength)
   local self = setmetatable({}, Dictionary)
   self.maxLength = maxLength or 7
   self.minLength = minLength or 3

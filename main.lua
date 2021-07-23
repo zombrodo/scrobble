@@ -1,7 +1,7 @@
 love.graphics.setDefaultFilter("nearest", "nearest")
 
-GAME_WIDTH = 640
-GAME_HEIGHT = 360
+GAME_WIDTH = 960
+GAME_HEIGHT = 540
 
 local Roomy = require "lib.roomy"
 
