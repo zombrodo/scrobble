@@ -1,7 +1,7 @@
 love.graphics.setDefaultFilter("nearest", "nearest")
 
-GAME_WIDTH = 960
-GAME_HEIGHT = 540
+GAME_WIDTH = 1280
+GAME_HEIGHT = 720
 
 local Roomy = require "lib.roomy"
 
@@ -28,10 +28,10 @@ function love.draw()
   love.graphics.clear(love.math.colorFromBytes(15, 42, 63))
   SceneManager:emit("draw")
   love.graphics.pop()
-  local scale = math.min(
+  local scale = math.floor(math.min(
     love.graphics.getHeight() / mainCanvas:getHeight(),
     love.graphics.getWidth() / mainCanvas:getWidth()
-  )
+  ) + 0.5)
   love.graphics.draw(
     mainCanvas,
     love.graphics.getWidth() / 2,

@@ -11,7 +11,7 @@ Tile.letterFont = Fonts.montserrat(25)
 Tile.scoreFont = Fonts.montserrat(10)
 Tile.textColor = { love.math.colorFromBytes(32, 57, 79) }
 
-function Tile.new(tileType, x, y)
+function Tile.new(tileType)
   local self = setmetatable({}, Tile)
   self.tileType = tileType
   self.letter = love.graphics.newText(
