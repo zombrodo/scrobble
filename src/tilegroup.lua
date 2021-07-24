@@ -93,6 +93,32 @@ function TileGroup:set(grid)
   return not (both or bottom)
 end
 
+function TileGroup:rotateClockwise()
+  if self.isHalved then return end
+  local temp00 = self.tile01
+  local temp10 = self.tile00
+  local temp01 = self.tile11
+  local temp11 = self.tile10
+
+  self.tile00 = temp00
+  self.tile01 = temp01
+  self.tile10 = temp10
+  self.tile11 = temp11
+end
+
+function TileGroup:rotateAnticlockwise()
+  if self.isHalved then return end
+  local temp00 = self.tile10
+  local temp01 = self.tile00
+  local temp10 = self.tile11
+  local temp11 = self.tile01
+
+  self.tile00 = temp00
+  self.tile01 = temp01
+  self.tile10 = temp10
+  self.tile11 = temp11
+end
+
 function TileGroup:draw(x, y)
   love.graphics.push("all")
   if not self.isHalved or (self.isHalved and self.leftHalf) then

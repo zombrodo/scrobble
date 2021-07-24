@@ -55,6 +55,8 @@ function GameScene:dropTile()
     local halfSet = self.tileGroup:set(self.grid)
     if not halfSet then
       self.tileGroup:reset()
+    else
+      self.tileGroup:drop() -- drop the half left behind
     end
   end
 end
@@ -93,6 +95,15 @@ function GameScene:keypressed(key)
       self.tileGroup:left()
     end
   end
+
+  if key == "z" then
+    self.tileGroup:rotateAnticlockwise()
+  end
+
+  if key == "x" then
+    self.tileGroup:rotateClockwise()
+  end
+
 end
 
 function GameScene:draw()
