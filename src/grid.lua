@@ -26,8 +26,9 @@ function Grid:get(x, y)
   return self.items[y][x]
 end
 
+-- TODO: pretty lenient, does no bounds checking?
 function Grid:check(x, y)
-  return self.items[y][x] ~= nil
+  return self.items[y] and self.items[y][x] ~= nil
 end
 
 function Grid:row(y)

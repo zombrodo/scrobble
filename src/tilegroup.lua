@@ -9,7 +9,11 @@ function TileGroup.new(bag, cellSize)
   self.y = -2
   self.cellSize = cellSize
   self.bag = bag
-  self.isHalf = false
+
+  -- For split groups.
+  self.isHalved = false
+  self.leftHalf = false
+
   self:reset()
   return self
 end
@@ -21,6 +25,8 @@ function TileGroup:reset()
   self.tile01 = Tile.new(self.bag:get())
   self.tile10 = Tile.new(self.bag:get())
   self.tile11 = Tile.new(self.bag:get())
+  self.isHalved = false
+  self.leftHalf = false
 end
 
 function TileGroup:drop()
@@ -36,23 +42,69 @@ function TileGroup:right()
 end
 
 function TileGroup:check(grid)
-  return grid:check(self.x, self.y + 2) or
-    grid:check(self.x + 1, self.y + 2)
+  if not self.isHalved then
+    return grid:check(self.x, self.y + 2)
+      or grid:check(self.x + 1, self.y + 2)
+  end
+
+  if self.leftHalf then
+    return grid:check(self.x, self.y + 2)
+  end
+
+  return grid:check(self.x + 1, self.y + 2)
 end
 
 function TileGroup:set(grid)
-  grid:add(self.x, self.y, self.tile00)
-  grid:add(self.x, self.y + 1, self.tile01)
-  grid:add(self.x + 1, self.y, self.tile10)
-  grid:add(self.x + 1, self.y + 1, self.tile11)
+  -- TODO: tidy this up, combine branches.
+  if self.isHalved then
+    if self.leftHalf then
+      grid:add(self.x, self.y, self.tile00)
+      grid:add(self.x, self.y + 1, self.tile01)
+    else
+      grid:add(self.x + 1, self.y, self.tile10)
+      grid:add(self.x + 1, self.y + 1, self.tile11)
+    end
+    return
+  end
+
+  -- is it on left or right?
+  local left = grid:check(self.x, self.y + 2)
+  local right = grid:check(self.x + 1, self.y + 2)
+
+  local bottom = not (left or right)
+  local both = left and right
+
+  if not (both or bottom) then
+    self.isHalved = true
+    self.leftHalf = right -- if the right half is set, then we have left
+  end
+
+  if left or both or bottom then
+    grid:add(self.x, self.y, self.tile00)
+    grid:add(self.x, self.y + 1, self.tile01)
+  end
+
+  if right or both or bottom then
+    grid:add(self.x + 1, self.y, self.tile10)
+    grid:add(self.x + 1, self.y + 1, self.tile11)
+  end
+
+  -- Return whether or not we should continue
+  return not (both or bottom)
 end
 
 function TileGroup:draw(x, y)
   love.graphics.push("all")
-  self.tile00:draw(x + (self.x * self.cellSize), y + (self.y * self.cellSize))
-  self.tile01:draw(x + (self.x * self.cellSize), y + ((self.y + 1) * self.cellSize))
-  self.tile10:draw(x + ((self.x + 1) * self.cellSize), y + (self.y * self.cellSize))
-  self.tile11:draw(x + ((self.x + 1) * self.cellSize), y + ((self.y + 1) * self.cellSize))
+  if not self.isHalved or (self.isHalved and self.leftHalf) then
+    self.tile00:draw(x + (self.x * self.cellSize), y + (self.y * self.cellSize))
+    self.tile01:draw(x + (self.x * self.cellSize), y + ((self.y + 1) * self.cellSize))
+  end
+
+  if not self.isHalved or (self.isHalved and not self.leftHalf) then
+    self.tile10:draw(x + ((self.x + 1) * self.cellSize), y + (self.y * self.cellSize))
+    self.tile11:draw(x + ((self.x + 1) * self.cellSize), y + ((self.y + 1) * self.cellSize))
+  end
+
   love.graphics.pop()
 end
 

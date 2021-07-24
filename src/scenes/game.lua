@@ -1,7 +1,6 @@
 local Bag = require "src.bag"
 local Dictionary = require "src.dictionary"
 local Grid = require "src.grid"
-local Tile = require "src.tile"
 local TileGroup = require "src.tilegroup"
 local Cursor = require "src.cursor"
 
@@ -53,8 +52,10 @@ function GameScene:dropTile()
   if inBounds and nothingBelow then
     self.tileGroup:drop()
   else
-    self.tileGroup:set(self.grid)
-    self.tileGroup:reset()
+    local halfSet = self.tileGroup:set(self.grid)
+    if not halfSet then
+      self.tileGroup:reset()
+    end
   end
 end
 
@@ -74,13 +75,21 @@ end
 
 function GameScene:keypressed(key)
   if key == "right" then
-    if self.tileGroup.x + 3 <= self.width then
+    local inBounds = (self.tileGroup.x + 3 <= self.width)
+    local nothingRight = not (
+      self.grid:check(self.tileGroup.x + 3, self.tileGroup.y)
+        or self.grid:check(self.tileGroup.x + 3, self.tileGroup.y + 1))
+    if inBounds and nothingRight then
       self.tileGroup:right()
     end
   end
 
   if key == "left" then
-    if self.tileGroup.x - 1 >= 0 then
+    local inBounds = self.tileGroup.x - 1 >= 0
+    local nothingLeft = not (
+      self.grid:check(self.tileGroup.x - 1, self.tileGroup.y)
+        or self.grid:check(self.tileGroup.x - 1, self.tileGroup.y + 1))
+    if inBounds and nothingLeft then
       self.tileGroup:left()
     end
   end
