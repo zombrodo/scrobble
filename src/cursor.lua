@@ -18,12 +18,12 @@ function Cursor:update(dt)
 end
 
 function Cursor:getColumn(cellSize)
-  return (self.currentX - self.startX) / cellSize
+  return math.floor((self.currentX - self.startX) / cellSize)
 end
 
 function Cursor:draw()
   love.graphics.push("all")
-  love.graphics.line(self.currentX, 0, self.currentX, GAME_HEIGHT)
+  love.graphics.line(self.currentX, 128, self.currentX, GAME_HEIGHT - 128)
   love.graphics.pop()
 end
 

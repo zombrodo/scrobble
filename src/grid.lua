@@ -43,13 +43,26 @@ function Grid:row(y)
 end
 
 function Grid:column(x)
-  local result
+  local result = {}
+  local currentWord = {}
   for y = 0, self.height do
-    table.insert(
-      result,
-      string.lower(TileType.letter(self.items[y][x].tileType))
-    )
+    if self.items[y][x] then
+      table.insert(
+        currentWord,
+        string.lower(TileType.letter(self.items[y][x].tileType))
+      )
+    else
+      if #currentWord > 0 then
+        table.insert(result, currentWord)
+      end
+    end
   end
+
+  -- catch the last one
+  if #currentWord > 0 then
+    table.insert(result, currentWord)
+  end
+
   return result
 end
 

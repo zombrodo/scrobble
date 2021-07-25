@@ -1,6 +1,7 @@
 local Bag = require "src.bag"
 local Dictionary = require "src.dictionary"
 local Grid = require "src.grid"
+local TileType = require "src.tiletype"
 local TileGroup = require "src.tilegroup"
 local Cursor = require "src.cursor"
 
@@ -31,6 +32,7 @@ function GameScene.new()
     self.startX,
     self.startX + (self.width * self.cellSize)
   )
+  self.lastCheckedColumn = 0
 
   -- Current Tile Group
   self.tileGroup = TileGroup.new(self.bag, self.cellSize)
@@ -61,6 +63,57 @@ function GameScene:dropTile()
   end
 end
 
+local function allSubstrings(str)
+  print("finding substrings for", str)
+  local result = {}
+  for i = 1, #str do
+    for j = i, #str do
+      table.insert(result, string.sub(str, i, j))
+    end
+  end
+  return result
+end
+
+function GameScene:winningWord(words)
+  local result = ""
+  for i, s in ipairs(words) do
+    if self.dictionary:check(s) then
+      if #s > #result then
+        result = s
+      end
+    end
+  end
+
+  if result ~= "" then
+    print("Winning word: ", result)
+    return result
+  end
+end
+
+function GameScene:findWords(wordList)
+  local result = {}
+  for i, list in ipairs(wordList) do
+    local word = table.concat(list)
+    if #word > self.minWordLength then
+      local bestWord = self:winningWord(allSubstrings(word))
+      if bestWord then
+        table.insert(result, bestWord)
+      end
+    end
+  end
+  return result
+end
+
+function GameScene:checkCursor()
+  local column = self.cursor:getColumn(self.cellSize)
+  if column == self.lastCheckedColumn then
+    return
+  end
+  -- Column check
+  self:findWords(self.grid:column(column))
+  self.lastCheckedColumn = column
+end
+
 function GameScene:update(dt)
   self.cursor:update(dt)
   -- Timer progress
@@ -73,6 +126,9 @@ function GameScene:update(dt)
   if love.keyboard.isDown("space") then
     self.dropTimer = self.dropTimer - (dt * 20)
   end
+
+  -- Cursor Check
+  self:checkCursor()
 end
 
 function GameScene:keypressed(key)
@@ -103,7 +159,6 @@ function GameScene:keypressed(key)
   if key == "x" then
     self.tileGroup:rotateClockwise()
   end
-
 end
 
 function GameScene:draw()
