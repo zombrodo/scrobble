@@ -23,6 +23,8 @@ function Tile.new(tileType)
     Tile.scoreFont,
     TileType.score(tileType)
   )
+  self.marked = false
+  self.gathered = false
   return self
 end
 
@@ -36,6 +38,14 @@ function Tile:draw(x, y)
   -- generated tiles with sprite-based ones.
   -- In that case, I _swear_ I don't normally use so many magic numbers!
   -- FIXME: swap with sprites
+  if self.marked then
+    love.graphics.setColor(1, 1, 1, 0.3)
+  elseif self.gathered then
+    love.graphics.setColor(0.5, 0.5, 0.5, 1)
+  else
+    love.graphics.setColor(1, 1, 1, 1)
+  end
+
   love.graphics.draw(Tile.sprite, x, y)
   love.graphics.setColor(Tile.textColor)
   love.graphics.draw(self.letter,

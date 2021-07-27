@@ -3,11 +3,12 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 GAME_WIDTH = 1280
 GAME_HEIGHT = 720
 
+Tick = require "lib.tick"
+
 local Roomy = require "lib.roomy"
 
-SceneManager = nil
-
 local GameScene = require "src.scenes.game"
+SceneManager = nil
 
 local mainCanvas
 
@@ -19,6 +20,7 @@ function love.load()
 end
 
 function love.update(dt)
+  Tick.update(dt)
 end
 
 function love.draw()

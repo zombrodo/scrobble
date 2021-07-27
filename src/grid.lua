@@ -31,6 +31,10 @@ function Grid:check(x, y)
   return self.items[y] and self.items[y][x] ~= nil
 end
 
+function Grid:remove(x, y)
+  self.items[y][x] = nil
+end
+
 -- FIXME: combine with `column` at some point?
 function Grid:row(y)
   local result = {}
@@ -41,7 +45,7 @@ function Grid:row(y)
         currentWord,
         {
           letter = string.lower(TileType.letter(self.items[y][x].tileType)),
-          x = x
+          index = x
         }
       )
     else
@@ -69,7 +73,7 @@ function Grid:column(x)
         currentWord,
         {
           letter = string.lower(TileType.letter(self.items[y][x].tileType)),
-          y = y
+          index = y
         }
       )
     else

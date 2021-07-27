@@ -70,7 +70,6 @@ function GameScene:longestValidWord(words)
   end
 
   if result ~= "" then
-    -- print("Winning word: ", result)
     return result
   end
 end
@@ -87,15 +86,30 @@ local function getLetter(w)
   return w.letter
 end
 
+local function getIndicies(w)
+  return w.index
+end
+
 function GameScene:findWordsColumn(x)
   local column = {}
   for i, list in ipairs(self.grid:column(x)) do
     -- TODO: handle `y` values in the future
     local word = table.concat(map(getLetter, list))
+    local indicies = map(getIndicies, list)
     if #word > self.minWordLength then
       local bestWord = self:longestValidWord(allSubstrings(word))
       if bestWord then
-        table.insert(column, bestWord)
+        local first, last = string.find(word, bestWord)
+        table.insert(
+          column,
+          {
+            word = bestWord,
+            gridIndex = x,
+            direction = "y",
+            first = indicies[first],
+            last = indicies[last]
+          }
+        )
       end
     end
   end
@@ -105,24 +119,52 @@ end
 function GameScene:findWordsRow(y)
   local row = {}
   for i, list in ipairs(self.grid:row(y)) do
-    print(i)
     -- TODO: handle `x` values in the future
     local word = table.concat(map(getLetter, list))
+    local indicies = map(getIndicies, list)
     if #word > self.minWordLength then
       local bestWord = self:longestValidWord(allSubstrings(word))
       if bestWord then
-        table.insert(row, bestWord)
+        local first, last = string.find(word, bestWord)
+        table.insert(
+          row, {
+            word = bestWord,
+            gridIndex = y,
+            direction = "x",
+            first = indicies[first],
+            last = indicies[last]
+          })
       end
     end
   end
-
   return row
 end
 
-local function printResults(results)
+-- FIXME: Assumes that the tiles at the indicies exist.
+function GameScene:markTiles(results)
   for i, result in ipairs(results) do
-    print(result)
+    if result.direction == "x" then
+      for x = result.first, result.last do
+        self.grid:get(x, result.gridIndex).marked = true
+      end
+    end
+    if result.direction == "y" then
+      for y = result.first, result.last do
+        self.grid:get(result.gridIndex, y).marked = true
+      end
+    end
   end
+end
+
+local function append(a, b, ...)
+  for i, elem in ipairs(b) do
+    table.insert(a, elem)
+  end
+  if ... then
+    return append(a, ...)
+  end
+
+  return a
 end
 
 function GameScene:findWords(isHalfSet)
@@ -136,13 +178,7 @@ function GameScene:findWords(isHalfSet)
     end
     local topRow = self:findWordsRow(self.tileGroup.y)
     local bottomRow = self:findWordsRow(self.tileGroup.y + 1)
-    print("======= BEGIN HALF")
-    print("-- Column --")
-    printResults(columnWords)
-    print("-- Top row --")
-    printResults(topRow)
-    print("-- Bottom row --")
-    printResults(bottomRow)
+    self:markTiles(append(columnWords, topRow, bottomRow))
     return
   end
 
@@ -151,16 +187,7 @@ function GameScene:findWords(isHalfSet)
   local rightWords = self:findWordsColumn(self.tileGroup.x + 1)
   local topWords = self:findWordsRow(self.tileGroup.y)
   local bottomWords = self:findWordsRow(self.tileGroup.y + 1)
-
-  print("======= BEGIN FULL")
-  print("-- Left Column --")
-  printResults(leftWords)
-  print("-- Right Column --")
-  printResults(rightWords)
-  print("-- Top Row --")
-  printResults(topWords)
-  print("-- Bottom Row --")
-  printResults(bottomWords)
+  self:markTiles(append(leftWords, rightWords, topWords, bottomWords))
 end
 
 function GameScene:dropTile()
@@ -184,7 +211,16 @@ function GameScene:checkCursor()
   if column == self.lastCheckedColumn then
     return
   end
-  -- self:findWords(column)
+
+  for y = 0, self.height do
+    if self.grid:check(column, y) and self.grid:get(column, y).marked then
+      -- TODO: Tally score here
+      self.grid:get(column, y).gathered = true
+      local grid = self.grid
+      Tick.delay(function() grid:remove(column, y) end, 2)
+    end
+  end
+
   self.lastCheckedColumn = column
 end
 

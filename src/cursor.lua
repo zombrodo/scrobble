@@ -6,7 +6,7 @@ function Cursor.new(startX, endX)
   self.startX = startX
   self.currentX = startX
   self.endX = endX
-  self.speed = 80
+  self.speed = 100
   return self
 end
 
