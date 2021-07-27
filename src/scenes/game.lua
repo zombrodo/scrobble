@@ -48,23 +48,8 @@ function GameScene:enter()
   self.dictionary:load("assets/dictionary.txt")
 end
 
-function GameScene:dropTile()
-  local inBounds = self.tileGroup.y + 3 <= self.height
-  local nothingBelow = not self.tileGroup:check(self.grid)
-  if inBounds and nothingBelow then
-    self.tileGroup:drop()
-  else
-    local halfSet = self.tileGroup:set(self.grid)
-    if not halfSet then
-      self.tileGroup:reset()
-    else
-      self.tileGroup:drop() -- drop the half left behind
-    end
-  end
-end
-
 local function allSubstrings(str)
-  print("finding substrings for", str)
+  -- print("finding substrings for", str)
   local result = {}
   for i = 1, #str do
     for j = i, #str do
@@ -74,7 +59,7 @@ local function allSubstrings(str)
   return result
 end
 
-function GameScene:winningWord(words)
+function GameScene:longestValidWord(words)
   local result = ""
   for i, s in ipairs(words) do
     if self.dictionary:check(s) then
@@ -85,23 +70,113 @@ function GameScene:winningWord(words)
   end
 
   if result ~= "" then
-    print("Winning word: ", result)
+    -- print("Winning word: ", result)
     return result
   end
 end
 
-function GameScene:findWords(wordList)
+local function map(fn, coll)
   local result = {}
-  for i, list in ipairs(wordList) do
-    local word = table.concat(list)
+  for i, elem in ipairs(coll) do
+    table.insert(result, fn(elem))
+  end
+  return result
+end
+
+local function getLetter(w)
+  return w.letter
+end
+
+function GameScene:findWordsColumn(x)
+  local column = {}
+  for i, list in ipairs(self.grid:column(x)) do
+    -- TODO: handle `y` values in the future
+    local word = table.concat(map(getLetter, list))
     if #word > self.minWordLength then
-      local bestWord = self:winningWord(allSubstrings(word))
+      local bestWord = self:longestValidWord(allSubstrings(word))
       if bestWord then
-        table.insert(result, bestWord)
+        table.insert(column, bestWord)
       end
     end
   end
-  return result
+  return column
+end
+
+function GameScene:findWordsRow(y)
+  local row = {}
+  for i, list in ipairs(self.grid:row(y)) do
+    print(i)
+    -- TODO: handle `x` values in the future
+    local word = table.concat(map(getLetter, list))
+    if #word > self.minWordLength then
+      local bestWord = self:longestValidWord(allSubstrings(word))
+      if bestWord then
+        table.insert(row, bestWord)
+      end
+    end
+  end
+
+  return row
+end
+
+local function printResults(results)
+  for i, result in ipairs(results) do
+    print(result)
+  end
+end
+
+function GameScene:findWords(isHalfSet)
+  -- Check Halves
+  if isHalfSet then
+    local columnWords = {}
+    if self.tileGroup.leftHalf then -- if the right was just set, then check right column
+      columnWords = self:findWordsColumn(self.tileGroup.x + 1)
+    else
+      columnWords = self:findWordsColumn(self.tileGroup.x)
+    end
+    local topRow = self:findWordsRow(self.tileGroup.y)
+    local bottomRow = self:findWordsRow(self.tileGroup.y + 1)
+    print("======= BEGIN HALF")
+    print("-- Column --")
+    printResults(columnWords)
+    print("-- Top row --")
+    printResults(topRow)
+    print("-- Bottom row --")
+    printResults(bottomRow)
+    return
+  end
+
+  -- Check all
+  local leftWords = self:findWordsColumn(self.tileGroup.x)
+  local rightWords = self:findWordsColumn(self.tileGroup.x + 1)
+  local topWords = self:findWordsRow(self.tileGroup.y)
+  local bottomWords = self:findWordsRow(self.tileGroup.y + 1)
+
+  print("======= BEGIN FULL")
+  print("-- Left Column --")
+  printResults(leftWords)
+  print("-- Right Column --")
+  printResults(rightWords)
+  print("-- Top Row --")
+  printResults(topWords)
+  print("-- Bottom Row --")
+  printResults(bottomWords)
+end
+
+function GameScene:dropTile()
+  local inBounds = self.tileGroup.y + 3 <= self.height
+  local nothingBelow = not self.tileGroup:check(self.grid)
+  if inBounds and nothingBelow then
+    self.tileGroup:drop()
+  else
+    local halfSet = self.tileGroup:set(self.grid)
+    self:findWords(halfSet)
+    if not halfSet then
+      self.tileGroup:reset()
+    else
+      self.tileGroup:drop() -- drop the half left behind
+    end
+  end
 end
 
 function GameScene:checkCursor()
@@ -109,8 +184,7 @@ function GameScene:checkCursor()
   if column == self.lastCheckedColumn then
     return
   end
-  -- Column check
-  self:findWords(self.grid:column(column))
+  -- self:findWords(column)
   self.lastCheckedColumn = column
 end
 

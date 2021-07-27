@@ -31,14 +31,32 @@ function Grid:check(x, y)
   return self.items[y] and self.items[y][x] ~= nil
 end
 
+-- FIXME: combine with `column` at some point?
 function Grid:row(y)
   local result = {}
+  local currentWord = {}
   for x = 0, self.width do
-    table.insert(
-      result,
-      string.lower(TileType.letter(self.items[y][x].tileType))
-    )
+    if self.items[y][x] then
+      table.insert(
+        currentWord,
+        {
+          letter = string.lower(TileType.letter(self.items[y][x].tileType)),
+          x = x
+        }
+      )
+    else
+      if #currentWord > 0 then
+        table.insert(result, currentWord)
+        currentWord = {}
+      end
+    end
   end
+
+    -- catch the last one
+    if #currentWord > 0 then
+      table.insert(result, currentWord)
+    end
+
   return result
 end
 
@@ -49,11 +67,15 @@ function Grid:column(x)
     if self.items[y][x] then
       table.insert(
         currentWord,
-        string.lower(TileType.letter(self.items[y][x].tileType))
+        {
+          letter = string.lower(TileType.letter(self.items[y][x].tileType)),
+          y = y
+        }
       )
     else
       if #currentWord > 0 then
         table.insert(result, currentWord)
+        currentWord = {}
       end
     end
   end
