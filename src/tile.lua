@@ -1,5 +1,6 @@
 local TileType = require "src.tiletype"
 local Fonts = require "src.utils.fonts"
+local Colour = require "src.utils.colour"
 
 local Tile = {}
 Tile.__index = Tile
@@ -9,7 +10,7 @@ Tile.Size = 32
 Tile.sprite = love.graphics.newImage("assets/tile.png")
 Tile.letterFont = Fonts.montserrat(25)
 Tile.scoreFont = Fonts.montserrat(10)
-Tile.textColor = { love.math.colorFromBytes(32, 57, 79) }
+Tile.textColor = Colour.fromBytes(32, 57, 79)
 
 function Tile.new(tileType)
   local self = setmetatable({}, Tile)

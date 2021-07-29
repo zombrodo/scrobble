@@ -1,4 +1,5 @@
 local TileType = require "src.tiletype"
+local Colour = require "src.utils.colour"
 
 local Grid = {}
 Grid.__index = Grid
@@ -95,25 +96,23 @@ end
 function Grid:draw(x, y)
   love.graphics.push("all")
   -- Grid
-  love.graphics.setColor(love.math.colorFromBytes(8, 20, 30))
+  -- love.graphics.setColor(Colour.fromBytes(8, 20, 30))
+  love.graphics.setColor(Colour.fromBytes(8, 20, 30, 0.7))
   for r = 0, self.height do
-    for c = 0, self.width - 1 do
-      if c ~= 0 then
-        love.graphics.line(
-          x + (c * self.cellSize),
-          (y - self.gridOverhang),
-          x + (c * self.cellSize),
-          (y + self.gridOverhang) + (self.height * self.cellSize))
-      end
-      if r ~= 0 then
         love.graphics.line(
           (x - self.gridOverhang),
           y + (r * self.cellSize),
           (x + self.gridOverhang) + (self.width * self.cellSize),
           y + (r * self.cellSize)
         )
-      end
-    end
+  end
+
+  for c = 0, self.width do
+      love.graphics.line(
+        x + (c * self.cellSize),
+        (y - self.gridOverhang),
+        x + (c * self.cellSize),
+        (y + self.gridOverhang) + (self.height * self.cellSize))
   end
 
   -- Tiles

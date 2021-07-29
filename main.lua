@@ -8,6 +8,7 @@ Tick = require "lib.tick"
 local Roomy = require "lib.roomy"
 
 local GameScene = require "src.scenes.game"
+local Colour = require "src.utils.colour"
 SceneManager = nil
 
 local mainCanvas
@@ -27,7 +28,7 @@ function love.draw()
   love.graphics.clear(0, 0, 0)
   love.graphics.push("all")
   love.graphics.setCanvas(mainCanvas)
-  love.graphics.clear(love.math.colorFromBytes(15, 42, 63))
+  love.graphics.clear(Colour.fromBytes(15, 42, 63))
   SceneManager:emit("draw")
   love.graphics.pop()
   local scale = math.floor(math.min(
