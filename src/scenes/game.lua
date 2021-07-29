@@ -38,7 +38,7 @@ function GameScene.new()
   self.tileGroup = TileGroup.new(self.bag, self.cellSize)
 
   -- Timer
-  self.dropTimerMax = 0.8
+  self.dropTimerMax = 0.4
   self.dropTimer = self.dropTimerMax
 
   return self
@@ -217,11 +217,29 @@ function GameScene:checkCursor()
       -- TODO: Tally score here
       self.grid:get(column, y).gathered = true
       local grid = self.grid
-      Tick.delay(function() grid:remove(column, y) end, 2)
+      Tick.delay(function() grid:remove(column, y) end, 1)
     end
   end
 
   self.lastCheckedColumn = column
+end
+
+function GameScene:fall()
+  local numChanged = 0
+  repeat
+    numChanged = 0
+    for x = 0, self.width do
+      for y = 0, self.height do
+        if self.grid:check(x, y) then
+          if y + 1 < self.height and not self.grid:check(x, y + 1) then
+            self.grid:add(x, y + 1, self.grid:get(x, y))
+            self.grid:remove(x, y)
+            numChanged = numChanged + 1
+          end
+        end
+      end
+    end
+  until numChanged < 1
 end
 
 function GameScene:update(dt)
@@ -239,6 +257,17 @@ function GameScene:update(dt)
 
   -- Cursor Check
   self:checkCursor()
+
+  self:fall()
+
+  -- Tile Update
+  for x = 0, self.width do
+    for y = 0, self.height do
+      if self.grid:check(x, y) then
+        self.grid:get(x, y):update(dt)
+      end
+    end
+  end
 end
 
 function GameScene:keypressed(key)

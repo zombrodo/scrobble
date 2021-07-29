@@ -25,11 +25,13 @@ function Tile.new(tileType)
   )
   self.marked = false
   self.gathered = false
+
+  self.scale = 1
+
   return self
 end
 
 function Tile:update(dt)
-
 end
 
 function Tile:draw(x, y)
@@ -40,18 +42,16 @@ function Tile:draw(x, y)
   -- FIXME: swap with sprites
   if self.marked then
     love.graphics.setColor(1, 1, 1, 0.3)
-  elseif self.gathered then
-    love.graphics.setColor(0.5, 0.5, 0.5, 1)
   else
     love.graphics.setColor(1, 1, 1, 1)
   end
 
-  love.graphics.draw(Tile.sprite, x, y)
+  love.graphics.draw(Tile.sprite, x, y, 0, self.scale, self.scale)
   love.graphics.setColor(Tile.textColor)
   love.graphics.draw(self.letter,
     x + ((Tile.sprite:getWidth() / 3) + 2),
     y + ((Tile.sprite:getHeight() / 2) - 1),
-    0, 1, 1,
+    0, self.scale, self.scale,
     self.letter:getWidth() / 2,
     self.letter:getHeight() / 2)
 
@@ -60,7 +60,7 @@ function Tile:draw(x, y)
 
   love.graphics.draw(self.score,
     x + (Tile.sprite:getWidth() / 2) + 5 + offset,
-    y + ((Tile.sprite:getHeight() / 2) + 2)
+    y + ((Tile.sprite:getHeight() / 2) + 2), 0, self.scale, self.scale
   )
   love.graphics.pop()
 end
