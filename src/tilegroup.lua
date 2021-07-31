@@ -21,10 +21,10 @@ end
 function TileGroup:reset()
   self.x = 6
   self.y = -2
-  self.tile00 = Tile.new(self.bag:get())
-  self.tile01 = Tile.new(self.bag:get())
-  self.tile10 = Tile.new(self.bag:get())
-  self.tile11 = Tile.new(self.bag:get())
+  self.tile00 = Tile.new(self.bag:__get())
+  self.tile01 = Tile.new(self.bag:__get())
+  self.tile10 = Tile.new(self.bag:__get())
+  self.tile11 = Tile.new(self.bag:__get())
   self.isHalved = false
   self.leftHalf = false
 end
@@ -119,16 +119,21 @@ function TileGroup:rotateAnticlockwise()
   self.tile11 = temp11
 end
 
-function TileGroup:draw(x, y)
+function TileGroup:draw(x, y, overrideX, overrideY)
+  -- TODO: fix this, so we can draw irrespective of whether we're in the  grid
+  -- or not.
+  local localX = overrideX or self.x
+  local localY = overrideY or self.y
+
   love.graphics.push("all")
   if not self.isHalved or (self.isHalved and self.leftHalf) then
-    self.tile00:draw(x + (self.x * self.cellSize), y + (self.y * self.cellSize))
-    self.tile01:draw(x + (self.x * self.cellSize), y + ((self.y + 1) * self.cellSize))
+    self.tile00:draw(x + (localX * self.cellSize), y + (localY * self.cellSize))
+    self.tile01:draw(x + (localX * self.cellSize), y + ((localY + 1) * self.cellSize))
   end
 
   if not self.isHalved or (self.isHalved and not self.leftHalf) then
-    self.tile10:draw(x + ((self.x + 1) * self.cellSize), y + (self.y * self.cellSize))
-    self.tile11:draw(x + ((self.x + 1) * self.cellSize), y + ((self.y + 1) * self.cellSize))
+    self.tile10:draw(x + ((localX + 1) * self.cellSize), y + (localY * self.cellSize))
+    self.tile11:draw(x + ((localX + 1) * self.cellSize), y + ((localY + 1) * self.cellSize))
   end
 
   love.graphics.pop()

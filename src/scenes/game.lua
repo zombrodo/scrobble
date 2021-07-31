@@ -199,7 +199,7 @@ function GameScene:dropTile()
     local halfSet = self.tileGroup:set(self.grid)
     self:findWords(halfSet)
     if not halfSet then
-      self.tileGroup:reset()
+      self.tileGroup = self.bag:get()
     else
       self.tileGroup:drop() -- drop the half left behind
     end
@@ -304,6 +304,7 @@ function GameScene:draw()
   love.graphics.push("all")
   self.grid:draw(self.startX, self.startY)
   self.tileGroup:draw(self.startX, self.startY)
+  self.bag:draw(self.startX - 40, love.graphics.getHeight() / 2)
   self.cursor:draw()
   love.graphics.pop()
 end
