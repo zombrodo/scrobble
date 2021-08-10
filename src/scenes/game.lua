@@ -1,9 +1,11 @@
 local Bag = require "src.bag"
 local Dictionary = require "src.dictionary"
 local Grid = require "src.grid"
-local TileType = require "src.tiletype"
 local TileGroup = require "src.tilegroup"
+local TileType = require "src.tiletype"
 local Cursor = require "src.cursor"
+local Fonts = require "src.utils.fonts"
+local Colour = require "src.utils.colour"
 
 local GameScene = {}
 GameScene.__index = GameScene
@@ -38,9 +40,15 @@ function GameScene.new()
   self.tileGroup = TileGroup.new(self.bag, self.cellSize)
 
   -- Timer
-  self.dropTimerMax = 0.4
-  self.dropTimer = self.dropTimerMax
+  self.dropTimerMax = 0.5
+  self.dropTimer = 2
 
+  -- Text
+  self.upNextText = love.graphics.newText(Fonts.montserrat(14), "Up next")
+
+  self.score = 0
+
+  self.scoreText = love.graphics.newText(Fonts.montserrat(14), "Score: 0")
   return self
 end
 
@@ -217,7 +225,10 @@ function GameScene:checkCursor()
       -- TODO: Tally score here
       self.grid:get(column, y).gathered = true
       local grid = self.grid
-      Tick.delay(function() grid:remove(column, y) end, 1)
+      Tick.delay(function()
+        self.score = self.score + TileType.score(grid:get(column, y).tileType)
+        grid:remove(column, y)
+       end, 1)
     end
   end
 
@@ -268,6 +279,9 @@ function GameScene:update(dt)
       end
     end
   end
+
+  -- Update Score
+  self.scoreText:set("Score: " .. self.score)
 end
 
 function GameScene:keypressed(key)
@@ -304,6 +318,35 @@ function GameScene:draw()
   love.graphics.push("all")
   self.grid:draw(self.startX, self.startY)
   self.tileGroup:draw(self.startX, self.startY)
+  love.graphics.setColor(Colour.fromBytes(246, 214, 189))
+  love.graphics.draw(
+    self.upNextText,
+    self.startX - 40,
+    (love.graphics.getHeight() / 2
+      - self.bag.bagCanvas:getHeight() / 2
+      -  self.upNextText:getHeight() / 2
+      - 10
+    ),
+    0,
+    1,
+    1,
+    self.upNextText:getWidth() / 2,
+    self.upNextText:getHeight() / 2
+  )
+  love.graphics.draw(
+    self.scoreText,
+    self.startX + (self.width * self.cellSize) + 40,
+    (love.graphics.getHeight() / 2
+      - self.bag.bagCanvas:getHeight() / 2
+      -  self.scoreText:getHeight() / 2
+      - 10
+    ),
+    0,
+    1,
+    1,
+    self.scoreText:getWidth() / 2,
+    self.scoreText:getHeight() / 2
+  )
   self.bag:draw(self.startX - 40, love.graphics.getHeight() / 2)
   self.cursor:draw()
   love.graphics.pop()
