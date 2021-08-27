@@ -4,10 +4,12 @@ GAME_WIDTH = 1280
 GAME_HEIGHT = 720
 
 Tick = require "lib.tick"
+Flux = require "lib.flux"
 
 local Roomy = require "lib.roomy"
 
 local GameScene = require "src.scenes.game"
+local DebugScene = require "src.scenes.debug"
 local Colour = require "src.utils.colour"
 SceneManager = nil
 
@@ -17,11 +19,12 @@ function love.load()
   mainCanvas = love.graphics.newCanvas(GAME_WIDTH, GAME_HEIGHT)
   SceneManager = Roomy.new()
   SceneManager:hook({exclude = { "draw" }})
-  SceneManager:enter(GameScene.new())
+  SceneManager:enter(DebugScene.new())
 end
 
 function love.update(dt)
   Tick.update(dt)
+  Flux.update(dt)
 end
 
 function love.draw()

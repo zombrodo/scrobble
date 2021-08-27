@@ -1,5 +1,5 @@
 local Trie = require "src.utils.trie"
-local TileType = require "src.tiletype"
+local TileType = require "src.letters.tiletype"
 
 local Dictionary = {}
 Dictionary.__index = Dictionary

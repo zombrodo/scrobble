@@ -7,13 +7,16 @@ function Cursor.new(startX, endX)
   self.currentX = startX
   self.endX = endX
   self.speed = 100
+  self.justCompleted = false
   return self
 end
 
 function Cursor:update(dt)
   self.currentX = self.currentX + self.speed * dt
+  self.justCompleted = false
   if self.currentX >= self.endX then
     self.currentX = self.startX
+    self.justCompleted = true
   end
 end
 
@@ -23,7 +26,7 @@ end
 
 function Cursor:draw()
   love.graphics.push("all")
-  love.graphics.line(self.currentX, 128, self.currentX, GAME_HEIGHT - 128)
+  love.graphics.line(self.currentX, 160, self.currentX, GAME_HEIGHT - 160)
   love.graphics.pop()
 end
 
