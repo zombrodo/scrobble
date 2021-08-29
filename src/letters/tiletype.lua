@@ -1,3 +1,5 @@
+local Colour = require "src.utils.colour"
+
 local TileType = {}
 
 TileType.A = "tile/A"
@@ -88,8 +90,43 @@ TileType.scores = {
   [ TileType.Blank ] = 0
 }
 
+TileType.ScoreMode = {}
+TileType.ScoreMode.Scrabble = "score/scrabble"
+TileType.ScoreMode.Rank = "score/rank"
+
 TileType.score = function(tileType)
   return TileType.scores[tileType]
+end
+
+TileType.Rank = {}
+TileType.Rank.Bronze = 1
+TileType.Rank.Silver = 2
+TileType.Rank.Gold = 3
+
+TileType.rank = function(tileType)
+  local r = love.math.random()
+  if r <= 0.5 then
+    return TileType.Rank.Bronze
+  end
+  if r <= 0.833 then
+    return TileType.Rank.Silver
+  end
+
+  return TileType.Rank.Gold
+end
+
+TileType.rankColour = function(rank)
+  if rank == TileType.Rank.Bronze then
+    return Colour.fromHex("#D88A58", 1)
+  end
+
+  if rank == TileType.Rank.Silver then
+    return Colour.fromHex("#B9BFC2", 1)
+  end
+
+  if rank == TileType.Rank.Gold then
+    return Colour.fromHex("#F6D409", 1)
+  end
 end
 
 local function split(str, sep)

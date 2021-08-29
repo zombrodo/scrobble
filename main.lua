@@ -31,7 +31,7 @@ function love.draw()
   love.graphics.clear(0, 0, 0)
   love.graphics.push("all")
   love.graphics.setCanvas(mainCanvas)
-  love.graphics.clear(Colour.fromBytes(15, 42, 63))
+  love.graphics.clear(Colour.fromHex("#20394f"))
   SceneManager:emit("draw")
   love.graphics.pop()
   local scale = math.floor(math.min(

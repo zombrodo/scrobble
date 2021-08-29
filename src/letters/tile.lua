@@ -14,9 +14,12 @@ Tile.letterFont = Fonts.montserrat(25)
 Tile.scoreFont = Fonts.montserrat(10)
 Tile.textColor = Colour.fromBytes(32, 57, 79)
 
+Tile.scoreMode = TileType.ScoreMode.Rank
+
 function Tile.new(tileType)
   local self = setmetatable({}, Tile)
   self.tileType = tileType
+  self.rank = TileType.rank(tileType)
   self.letter = love.graphics.newText(
     Tile.letterFont,
     TileType.letter(tileType)
@@ -58,7 +61,7 @@ function Tile:draw(x, y)
   if self.marked then
     love.graphics.setColor(Tile.textColor)
   else
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(TileType.rankColour(self.rank))
   end
   -- Tile background
   love.graphics.draw(
@@ -73,31 +76,40 @@ function Tile:draw(x, y)
   )
   -- Tile Letter
   if self.marked then
-    love.graphics.setColor(Colour.fromHex("#f6d6bd"))
+    love.graphics.setColor(TileType.rankColour(self.rank))
   else
     love.graphics.setColor(Tile.textColor)
   end
   love.graphics.draw(self.letter,
-    x + ((Tile.sprite:getWidth() / 3) + 2),
+    x + ((Tile.sprite:getWidth() / 2) - 1),
     y + ((Tile.sprite:getHeight() / 2) - 1),
     0, self.scale, self.scale,
     Tile.sprite:getWidth() / 2 + self.letter:getWidth() / 2,
     Tile.sprite:getHeight() / 2 + self.letter:getHeight() / 2)
 
+  if Tile.scoreMode == TileType.ScoreMode.Scrabble then
   -- Score
   -- If we need to offset, then add 4 pixels, otherwise add nuthin'
-  local offset = (self.shouldOffsetScore and 4) or 0
+    local offset = (self.shouldOffsetScore and 4) or 0
+    love.graphics.draw(self.score,
+      x + (Tile.sprite:getWidth() / 2) + 5 + offset,
+      y + ((Tile.sprite:getHeight() / 2) + 2),
+      0,
+      self.scale,
+      self.scale,
+      Tile.sprite:getWidth() / 2,
+      Tile.sprite:getHeight() / 2
+    )
+  end
 
-  love.graphics.draw(self.score,
-    x + (Tile.sprite:getWidth() / 2) + 5 + offset,
-    y + ((Tile.sprite:getHeight() / 2) + 2),
-    0,
-    self.scale,
-    self.scale,
-    Tile.sprite:getWidth() / 2,
-    Tile.sprite:getHeight() / 2
-  )
-
+  if Tile.scoreMode == TileType.ScoreMode.Rank then
+    -- love.graphics.setColor(TileType.rankColour(self.tileType))
+    -- love.graphics.circle("fill",
+    --   x + 10,
+    --   y + 5,
+    --   4
+    -- )
+  end
 
   if self.gathered then
   love.graphics.setShader(self.shader.shader)

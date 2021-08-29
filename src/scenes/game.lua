@@ -11,7 +11,6 @@ local Match = require "src.gameplay.match"
 local UpNext = require "src.ui.upnext"
 
 local Tile = require "src.letters.tile"
-local TileType = require "src.letters.tiletype"
 
 local String = require "src.utils.string"
 
@@ -29,7 +28,7 @@ function GameScene.new()
   self.bag = Bag.new()
   self.currentTile = self.bag:shift() -- stateful get
 
-  self.dropTimerMax = 0.5
+  self.dropTimerMax = 0.7
   self.dropTimer = self.dropTimerMax * 8
   self.dropSpeed = 20
 
@@ -42,7 +41,7 @@ end
 function GameScene:enter()
   -- Grid setup
   local gridWidth = 16
-  local gridHeight = 10
+  local gridHeight = 12
   local cellSize = 32
 
   local upNextRules = Rules.new()
