@@ -12,19 +12,10 @@ DebugScene.__index = DebugScene
 
 function DebugScene:reset()
   self.grid:clear()
-  self.grid:set(6, 9, Tile.new(TileType.T))
-  self.grid:get(6, 9).marked = true
-  self.grid:set(7, 9, Tile.new(TileType.I))
-  self.grid:get(7, 9).marked = true
-  self.grid:set(8, 9, Tile.new(TileType.R))
-  self.grid:get(8, 9).marked = true
-  self.grid:set(9, 9, Tile.new(TileType.E))
-  self.grid:get(9, 9).marked = true
-
-  self.grid:set(6, 8, Tile.new(TileType.X))
-  self.grid:set(7, 8, Tile.new(TileType.Y))
-  self.grid:set(8, 8, Tile.new(TileType.D))
-  self.grid:set(9, 8, Tile.new(TileType.Q))
+  self.grid:set(6, 4, Tile.new(TileType.X))
+  self.grid:set(7, 4, Tile.new(TileType.Y))
+  self.grid:set(8, 4, Tile.new(TileType.D))
+  self.grid:set(9, 4, Tile.new(TileType.Q))
 end
 
 function DebugScene.new()
@@ -73,14 +64,16 @@ function DebugScene:checkCursor()
   end
 end
 
+
 function DebugScene:fall()
   for x = 0, self.grid.xCells do
     for y = 0, self.grid.yCells - 2 do
       if self.grid:check(x, y) and not self.grid:check(x, y + 1) then
-        print("shifting", x, y, "down to", x, y + 1)
-        local tile = self.grid:get(x, y)
-        self.grid:set(x, y + 1, tile)
-        self.grid:remove(x, y)
+        local goalY = y + 1
+        while not self.grid:check(x, goalY + 1) and (goalY + 1 < self.grid.yCells) do
+          goalY = goalY + 1
+        end
+        self.grid:fallTo(x, y, x, goalY)
       end
     end
   end

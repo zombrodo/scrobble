@@ -19,7 +19,7 @@ function love.load()
   mainCanvas = love.graphics.newCanvas(GAME_WIDTH, GAME_HEIGHT)
   SceneManager = Roomy.new()
   SceneManager:hook({exclude = { "draw" }})
-  SceneManager:enter(DebugScene.new())
+  SceneManager:enter(GameScene.new())
 end
 
 function love.update(dt)

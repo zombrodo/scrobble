@@ -30,7 +30,7 @@ function GameScene.new()
   self.currentTile = self.bag:shift() -- stateful get
 
   self.dropTimerMax = 0.5
-  self.dropTimer = self.dropTimerMax
+  self.dropTimer = self.dropTimerMax * 8
   self.dropSpeed = 20
 
   self.paused = false
@@ -214,7 +214,7 @@ function GameScene:checkCursor()
       local grid = self.grid
       Tick.delay(function()
         grid:remove(column, y)
-      end, 0.7)
+      end, 0.4)
     end
   end
 end
@@ -223,10 +223,13 @@ function GameScene:fall()
   for x = 0, self.grid.xCells do
     for y = 0, self.grid.yCells - 2 do
       if self.grid:check(x, y) and not self.grid:check(x, y + 1) then
-        print("shifting", x, y, "down to", x, y + 1)
-        local tile = self.grid:get(x, y)
-        self.grid:set(x, y + 1, tile)
-        self.grid:remove(x, y)
+        local goalY = y + 1
+        while not self.grid:check(x, goalY + 1)
+          and not self.grid:reserved(x, goalY + 1)
+          and (goalY + 1 < self.grid.yCells) do
+          goalY = goalY + 1
+        end
+        self.grid:fallTo(x, y, x, goalY)
       end
     end
   end

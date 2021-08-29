@@ -19,6 +19,8 @@ function Grid:new(rules, xCells, yCells, cellSize)
     grid.items[y] = {}
   end
 
+  grid.fallingTiles = {}
+
   return grid
 end
 
@@ -159,6 +161,44 @@ function Grid:getColumn(x)
   return result
 end
 
+function Grid:reserved(x, y)
+  for i, fallingTile in ipairs(self.fallingTiles) do
+    if y == fallingTile.goal then
+      return true
+    end
+  end
+  return false
+end
+
+function Grid:finishFalling(y)
+  local index = -1
+  for i, fallingTile in ipairs(self.fallingTiles) do
+    if fallingTile.goal == y then
+      index = i
+    end
+  end
+
+  if index ~= -1 then
+    table.remove(self.fallingTiles, index)
+  end
+end
+
+function Grid:fallTo(startX, startY, endX, endY)
+  local tile = self:get(startX, startY)
+  local grid = self
+  self:remove(startX, startY)
+  local fallingTile = {
+    tile = tile, x = startX, y = startY, goal = endY
+  }
+  table.insert(self.fallingTiles, fallingTile)
+  Flux.to(fallingTile, 0.2, { y = endY })
+    :ease("expoout")
+    :oncomplete(function()
+    grid:finishFalling(endY)
+    grid:set(endX, endY, tile)
+  end)
+end
+
 function Grid:draw()
   love.graphics.push("all")
     -- Grid
@@ -192,6 +232,14 @@ function Grid:draw()
         end
       end
     end
+
+    -- Falling Tiles
+  for i, fallingTile in ipairs(self.fallingTiles) do
+    fallingTile.tile:draw(
+      self.x + (fallingTile.x * self.cellSize) + self.cellSize / 2,
+      self.y + (fallingTile.y * self.cellSize) + self.cellSize / 2
+    )
+  end
   love.graphics.pop()
 end
 

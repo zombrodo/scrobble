@@ -114,7 +114,6 @@ function Tile:draw(x, y)
     Tile.sprite:getHeight() / 2
   )
   end
-
   love.graphics.pop()
 end
 
