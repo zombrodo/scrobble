@@ -115,6 +115,14 @@ TileType.rank = function(tileType)
   return TileType.Rank.Gold
 end
 
+TileType.bomb = function(tileType)
+  local r = love.math.random()
+  if r > 0.95 then
+    return true
+  end
+  return false
+end
+
 TileType.rankColour = function(rank)
   if rank == TileType.Rank.Bronze then
     return Colour.fromHex("#D88A58", 1)

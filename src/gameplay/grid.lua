@@ -26,6 +26,9 @@ end
 
 function Grid:set(x, y, cell)
   self.items[y][x] = cell
+  if cell.bomb then
+    self:detonate(x, y, cell.rank)
+  end
 end
 
 function Grid:get(x, y)
@@ -107,6 +110,34 @@ function Grid:setGroup(tileGroup)
 
   -- Return whether or not we should continue
   return not (both or bottom)
+end
+
+function Grid:detonate(x, y, rankType)
+  self:get(x, y):mark()
+  -- check sides
+  if self:check(x - 1, y)
+    and self:get(x - 1, y).rank == rankType
+    and not self:get(x - 1, y).marked then
+    self:detonate(x - 1, y, rankType)
+  end
+
+  if self:check(x + 1, y)
+    and self:get(x + 1, y).rank == rankType
+    and not self:get(x + 1, y).marked then
+    self:detonate(x + 1, y, rankType)
+  end
+
+  if self:check(x, y - 1)
+    and self:get(x, y - 1).rank == rankType
+    and not self:get(x, y - 1).marked then
+    self:detonate(x, y - 1, rankType)
+  end
+
+  if self:check(x, y + 1)
+    and self:get(x, y + 1).rank == rankType
+    and not self:get(x, y + 1).marked then
+    self:detonate(x, y + 1, rankType)
+  end
 end
 
 function Grid:__getIndexedTile(x, y, index)

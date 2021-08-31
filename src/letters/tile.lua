@@ -36,6 +36,7 @@ function Tile.new(tileType)
   self.letterScale = 1
 
   self.shader = Shader.new("assets/tile.glsl")
+  self.bomb = TileType.bomb(tileType)
 
   self.elapsed = 0
   return self
@@ -44,6 +45,10 @@ end
 function Tile:gather()
   self.gathered = true
   -- Flux.to(self, 0.99, { scale = 1.3 }):ease("backout")
+end
+
+function Tile:mark()
+  self.marked = true
 end
 
 function Tile:update(dt)
@@ -74,12 +79,16 @@ function Tile:draw(x, y)
     Tile.sprite:getWidth() / 2,
     Tile.sprite:getHeight() / 2
   )
+
   -- Tile Letter
   if self.marked then
     love.graphics.setColor(TileType.rankColour(self.rank))
+  elseif self.bomb then
+    love.graphics.setColor(Colour.fromHex("#f5428a"))
   else
     love.graphics.setColor(Tile.textColor)
   end
+
   love.graphics.draw(self.letter,
     x + ((Tile.sprite:getWidth() / 2) - 1),
     y + ((Tile.sprite:getHeight() / 2) - 1),
@@ -100,15 +109,6 @@ function Tile:draw(x, y)
       Tile.sprite:getWidth() / 2,
       Tile.sprite:getHeight() / 2
     )
-  end
-
-  if Tile.scoreMode == TileType.ScoreMode.Rank then
-    -- love.graphics.setColor(TileType.rankColour(self.tileType))
-    -- love.graphics.circle("fill",
-    --   x + 10,
-    --   y + 5,
-    --   4
-    -- )
   end
 
   if self.gathered then
