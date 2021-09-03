@@ -10,6 +10,7 @@ local Roomy = require "lib.roomy"
 
 local GameScene = require "src.scenes.game"
 local DebugScene = require "src.scenes.debug"
+
 local Colour = require "src.utils.colour"
 SceneManager = nil
 
@@ -31,7 +32,7 @@ function love.draw()
   love.graphics.clear(0, 0, 0)
   love.graphics.push("all")
   love.graphics.setCanvas(mainCanvas)
-  love.graphics.clear(Colour.fromHex("#20394f"))
+  love.graphics.clear(Colour.fromHex("#32434d"))
   SceneManager:emit("draw")
   love.graphics.pop()
   local scale = math.floor(math.min(
