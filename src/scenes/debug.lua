@@ -5,17 +5,17 @@ local Grid = require "src.gameplay.grid"
 local Cursor = require "src.gameplay.cursor"
 
 local Tile = require "src.letters.tile"
-local TileType = require "src.letters.tiletype"
+local Letter = require "src.letters.letter"
 
 local DebugScene = {}
 DebugScene.__index = DebugScene
 
 function DebugScene:reset()
   self.grid:clear()
-  self.grid:set(6, 4, Tile.new(TileType.X))
-  self.grid:set(7, 4, Tile.new(TileType.Y))
-  self.grid:set(8, 4, Tile.new(TileType.D))
-  self.grid:set(9, 4, Tile.new(TileType.Q))
+  self.grid:set(6, 4, Tile.new(Letter.X))
+  self.grid:set(7, 4, Tile.new(Letter.Y))
+  self.grid:set(8, 4, Tile.new(Letter.D))
+  self.grid:set(9, 4, Tile.new(Letter.Q))
 end
 
 function DebugScene.new()

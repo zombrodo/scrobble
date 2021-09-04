@@ -10,4 +10,14 @@ function String.allSubstrings(str)
   return result
 end
 
+function String.split(str, sep)
+  local result = {}
+  string.gsub(
+    str,
+    string.format("([^%s]+)", sep),
+    function(c) table.insert(result, c) end
+  )
+  return result
+end
+
 return String

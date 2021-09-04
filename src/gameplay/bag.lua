@@ -1,5 +1,5 @@
 local Queue = require "src.utils.queue"
-local TileType = require "src.letters.tiletype"
+local Letter = require "src.letters.letter"
 local TileGroup = require "src.letters.tilegroup"
 
 local Bag = {}
@@ -31,17 +31,23 @@ end
 
 function Bag:refill()
   local bag = {}
-  for tileType, quantity in pairs(TileType.frequencies) do
+  for letter, quantity in pairs(Letter.Frequencies) do
     for i = 1, quantity do
-      if tileType ~= TileType.Blank then
-        table.insert(bag, tileType)
-      end
+      table.insert(bag, letter)
     end
   end
   self.items = shuffle(bag)
 end
 
+local function spawnSpecialTile()
+  return love.math.random() > 0.95
+end
+
 function Bag:nextTile()
+  if spawnSpecialTile() then
+    return Letter.Special
+  end
+
   local letter = table.remove(self.items)
   if #self.items == 0 then
     self:refill()

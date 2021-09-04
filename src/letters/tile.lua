@@ -1,8 +1,8 @@
 local Colour = require "src.utils.colour"
 local Shader = require "src.utils.shader"
-local TileType = require "src.letters.tiletype"
+
+local Letter = require 'src.letters.letter'
 local TileRank = require "src.letters.tilerank"
-local TileSprite = require "src.letters.tilesprite"
 
 local Tile = {}
 Tile.__index = Tile
@@ -10,23 +10,18 @@ Tile.__index = Tile
 Tile.Size = 32
 Tile.darkColour = Colour.fromBytes(32, 57, 79)
 
-function Tile.new(tileType)
+function Tile.new(letter)
   local self = setmetatable({}, Tile)
-  self.tileType = tileType
+  self.letter = letter
   self.rank = TileRank.rank()
   -- TODO: Consider placing these within the bag
-  self.clear = TileType.isClearTile()
+  self.isSpecialTile = letter == Letter.Special
 
-  if self.clear then
-    self.sprite = TileSprite.clearTile(self.rank)
-  else
-    self.sprite = TileSprite.get(self.tileType, self.rank)
-  end
+  self.sprite = Letter.sprite(self.letter, self.rank, 33, 32)
+  self.scale = 1
 
   self.marked = false
   self.gathered = false
-
-  self.scale = 1
 
   self.shader = Shader.new("assets/tile.glsl")
   self.elapsed = 0

@@ -34,4 +34,18 @@ TileRank.colour = function(rank)
   end
 end
 
+TileRank.score = function(rank)
+  if rank == TileRank.Bronze then
+    return 1
+  end
+
+  if rank == TileRank.Silver then
+    return 3
+  end
+
+  if rank == TileRank.Gold then
+    return 5
+  end
+end
+
 return TileRank

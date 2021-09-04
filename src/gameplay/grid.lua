@@ -2,7 +2,7 @@ local Plan = require "lib.plan"
 local Container = Plan.Container
 
 local Colour = require "src.utils.colour"
-local TileType = require "src.letters.tiletype"
+local Letter = require "src.letters.letter"
 
 local Grid = Container:extend()
 
@@ -26,7 +26,7 @@ end
 
 function Grid:set(x, y, cell)
   self.items[y][x] = cell
-  if cell.bomb then
+  if cell.isSpecialTile then
     self:detonate(x, y, cell.rank)
   end
 end
@@ -143,7 +143,7 @@ end
 function Grid:__getIndexedTile(x, y, index)
   if self:check(x, y) then
     return {
-      letter = string.lower(TileType.letter(self:get(x, y).tileType)),
+      letter = Letter.toChar(self:get(x, y).letter),
       index = index
     }
   end

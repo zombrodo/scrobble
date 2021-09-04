@@ -1,5 +1,5 @@
 local Trie = require "src.utils.trie"
-local TileType = require "src.letters.tiletype"
+local Letter = require "src.letters.letter"
 
 local Dictionary = {}
 Dictionary.__index = Dictionary
@@ -18,7 +18,7 @@ end
 local function validWord(word)
   local freqs = frequencies(word)
   for c in word:gmatch(".") do
-    if freqs[c] > TileType.frequencies[TileType.fromChar(c)] then
+    if freqs[c] > Letter.Frequencies[Letter.fromChar(c)] then
       return false
     end
   end
@@ -53,14 +53,6 @@ end
 
 function Dictionary:check(word)
   return self.trie:search(word)
-end
-
-function Dictionary:score(word)
-  local result = 0
-  for c in word:gmatch(".") do
-    result = result + TileType.scores[TileType.fromChar(c)]
-  end
-  return result
 end
 
 return Dictionary
