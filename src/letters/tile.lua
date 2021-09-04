@@ -7,7 +7,10 @@ local TileRank = require "src.letters.tilerank"
 local Tile = {}
 Tile.__index = Tile
 
-Tile.Size = 32
+Tile.Width = 32
+Tile.Height = 32
+
+
 Tile.darkColour = Colour.fromBytes(32, 57, 79)
 
 function Tile.new(letter)
@@ -17,7 +20,7 @@ function Tile.new(letter)
   -- TODO: Consider placing these within the bag
   self.isSpecialTile = letter == Letter.Special
 
-  self.sprite = Letter.sprite(self.letter, self.rank, 33, 32)
+  self.sprite = Letter.sprite(self.letter, self.rank, Tile.Width, Tile.Height)
   self.scale = 1
 
   self.marked = false

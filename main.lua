@@ -32,13 +32,14 @@ function love.draw()
   love.graphics.clear(0, 0, 0)
   love.graphics.push("all")
   love.graphics.setCanvas(mainCanvas)
-  love.graphics.clear(Colour.fromHex("#32434d"))
+  love.graphics.clear(Colour.fromHex("#f6d2ac"))
   SceneManager:emit("draw")
   love.graphics.pop()
-  local scale = math.floor(math.min(
-    love.graphics.getHeight() / mainCanvas:getHeight(),
-    love.graphics.getWidth() / mainCanvas:getWidth()
-  ) + 0.5)
+  -- local scale = math.floor(math.min(
+  --   love.graphics.getHeight() / mainCanvas:getHeight(),
+  --   love.graphics.getWidth() / mainCanvas:getWidth()
+  -- ) + 0.5)
+  local scale = 2
   love.graphics.draw(
     mainCanvas,
     love.graphics.getWidth() / 2,

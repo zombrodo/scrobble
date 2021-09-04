@@ -6,13 +6,16 @@ local Letter = require "src.letters.letter"
 
 local Grid = Container:extend()
 
-function Grid:new(rules, xCells, yCells, cellSize)
+function Grid:new(rules, xCells, yCells, cellWidth, cellHeight)
   local grid = Grid.super.new(self, rules)
   grid.xCells = xCells
   grid.yCells = yCells
-  grid.cellSize = cellSize
 
-  grid.colour = Colour.fromBytes(8, 20, 30, 0.7)
+  grid.cellWidth = cellWidth
+  grid.cellHeight = cellHeight
+
+  -- grid.colour = Colour.fromBytes(8, 20, 30, 0.7)
+  grid.colour = Colour.fromHex("#a35233")
 
   grid.items = {}
   for y = 0, yCells do
@@ -232,43 +235,43 @@ end
 
 function Grid:draw()
   love.graphics.push("all")
-    -- Grid
-    love.graphics.setColor(self.colour)
-    for r = 0, self.yCells do
-          love.graphics.line(
-            self.x,
-            self.y + (r * self.cellSize),
-            self.x + (self.xCells * self.cellSize),
-            self.y + (r * self.cellSize)
-          )
-    end
+  -- Grid
+  -- love.graphics.setColor(self.colour)
+  -- for r = 0, self.yCells do
+  --       love.graphics.line(
+  --         self.x,
+  --         self.y + (r * self.cellHeight),
+  --         self.x + (self.xCells * self.cellWidth),
+  --         self.y + (r * self.cellHeight)
+  --       )
+  -- end
 
-    for c = 0, self.xCells do
-        love.graphics.line(
-          self.x + (c * self.cellSize),
-          self.y,
-          self.x + (c * self.cellSize),
-          self.y + (self.yCells * self.cellSize))
-    end
+  -- for c = 0, self.xCells do
+  --     love.graphics.line(
+  --       self.x + (c * self.cellWidth),
+  --       self.y,
+  --       self.x + (c * self.cellWidth),
+  --       self.y + (self.yCells * self.cellHeight))
+  -- end
 
-    -- Tiles
-    love.graphics.setColor(1, 1, 1, 1)
-    for r = 0, self.yCells - 1 do
-      for c = 0, self.xCells - 1 do
-        if self.items[r][c] then
-          self.items[r][c]:draw(
-            self.x + (c * self.cellSize) + self.cellSize / 2,
-            self.y + (r * self.cellSize) + self.cellSize / 2
-          )
-        end
+  -- Tiles
+  love.graphics.setColor(1, 1, 1, 1)
+  for r = 0, self.yCells - 1 do
+    for c = 0, self.xCells - 1 do
+      if self.items[r][c] then
+        self.items[r][c]:draw(
+          self.x + (c * self.cellWidth) + self.cellWidth / 2,
+          self.y + (r * self.cellHeight) + self.cellHeight / 2
+        )
       end
     end
+  end
 
     -- Falling Tiles
   for i, fallingTile in ipairs(self.fallingTiles) do
     fallingTile.tile:draw(
-      self.x + (fallingTile.x * self.cellSize) + self.cellSize / 2,
-      self.y + (fallingTile.y * self.cellSize) + self.cellSize / 2
+      self.x + (fallingTile.x * self.cellWidth) + self.cellWidth / 2,
+      self.y + (fallingTile.y * self.cellHeight) + self.cellHeight / 2
     )
   end
   love.graphics.pop()

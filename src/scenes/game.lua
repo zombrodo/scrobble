@@ -42,29 +42,30 @@ function GameScene:enter()
   -- Grid setup
   local gridWidth = 16
   local gridHeight = 12
-  local cellSize = 32
+  local cellWidth = Tile.Width
+  local cellHeight = Tile.Height
 
   local upNextRules = Rules.new()
   upNextRules:addX(Plan.pixel(0))
     :addY(Plan.center())
-    :addWidth(Plan.pixel(2 * cellSize))
-    :addHeight(Plan.pixel(9 * cellSize))
+    :addWidth(Plan.pixel(2 * cellWidth))
+    :addHeight(Plan.pixel(9 * cellHeight))
 
   self.upNext = UpNext:new(upNextRules, self.bag)
 
   local gridRules = Rules.new()
-  gridRules:addX(Plan.pixel(upNextRules:getWidth().value + 16))
+  gridRules:addX(Plan.pixel(upNextRules:getWidth().value + cellWidth / 2))
     :addY(Plan.center())
-    :addWidth(Plan.pixel(cellSize * gridWidth))
-    :addHeight(Plan.pixel(cellSize * gridHeight))
+    :addWidth(Plan.pixel(cellWidth * gridWidth))
+    :addHeight(Plan.pixel(cellHeight * gridHeight))
 
-  self.grid = Grid:new(gridRules, gridWidth, gridHeight, cellSize)
+  self.grid = Grid:new(gridRules, gridWidth, gridHeight, cellWidth, cellHeight)
 
   local boardRules = Rules.new()
   boardRules:addX(Plan.center())
     :addY(Plan.center())
     :addWidth(Plan.pixel(upNextRules:getWidth().value + gridRules:getWidth().value))
-    :addHeight(Plan.pixel(cellSize * gridHeight))
+    :addHeight(Plan.pixel(cellHeight * gridHeight))
 
   local board = Container:new(boardRules)
   board:addChild(self.upNext)
@@ -201,7 +202,7 @@ function GameScene:dropTile()
 end
 
 function GameScene:checkCursor()
-  local column = self.cursor:getColumn(Tile.Size)
+  local column = self.cursor:getColumn(Tile.Width)
   if column == self.lastCheckedColumn then
     return
   end
@@ -307,8 +308,8 @@ function GameScene:draw()
   self.cursor:draw()
   -- TODO: The origins seem off for this one :thonk:
   self.currentTile:draw(
-    self.grid.x + Tile.Size / 2,
-    self.grid.y + Tile.Size / 2
+    self.grid.x + Tile.Width / 2,
+    self.grid.y + Tile.Height / 2
   )
   love.graphics.pop()
 end

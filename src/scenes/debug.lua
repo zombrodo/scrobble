@@ -12,7 +12,7 @@ DebugScene.__index = DebugScene
 
 function DebugScene:reset()
   self.grid:clear()
-  self.grid:set(6, 4, Tile.new(Letter.X))
+  self.grid:set(6, 4, Tile.new(Letter.A))
   self.grid:set(7, 4, Tile.new(Letter.Y))
   self.grid:set(8, 4, Tile.new(Letter.D))
   self.grid:set(9, 4, Tile.new(Letter.Q))
@@ -22,14 +22,16 @@ function DebugScene.new()
   local self = setmetatable({}, DebugScene)
   local gridWidth = 16
   local gridHeight = 10
-  local cellSize = 32
+  local cellWidth = 33
+  local cellHeight = 32
+
   self.ui = Plan.new()
   local gridRules = Rules.new()
   gridRules:addX(Plan.center())
     :addY(Plan.center())
-    :addWidth(Plan.pixel(gridWidth * cellSize))
-    :addHeight(Plan.pixel(gridHeight * cellSize))
-  self.grid = Grid:new(gridRules, gridWidth, gridHeight, cellSize)
+    :addWidth(Plan.pixel(gridWidth * cellWidth))
+    :addHeight(Plan.pixel(gridHeight * cellHeight))
+  self.grid = Grid:new(gridRules, gridWidth, gridHeight, cellWidth, cellHeight)
   self.ui:addChild(self.grid)
 
   self:reset()
@@ -46,7 +48,7 @@ function DebugScene:enter()
 end
 
 function DebugScene:checkCursor()
-  local column = self.cursor:getColumn(Tile.Size)
+  local column = self.cursor:getColumn(Tile.Width)
   if column == self.lastCheckedColumn then
     return
   end

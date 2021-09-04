@@ -6,7 +6,7 @@ local Colour = require "src.utils.colour"
 
 local UpNext = Container:extend()
 
-local tileGroupHeight = Tile.Size * 2
+local tileGroupHeight = Tile.Height * 2
 
 function UpNext:new(rules, bag)
   local upNext = UpNext.super.new(self, rules)
@@ -44,7 +44,7 @@ function UpNext:draw()
   love.graphics.clear()
   for i = 0, 4 do
     self.bag:getUpNext(i)
-      :draw(16, ((i * tileGroupHeight) + (i * 16) + 16) - self.yOffset, 0, 0)
+      :draw(Tile.Width / 2, ((i * tileGroupHeight) + (i * Tile.Height / 2) + Tile.Height / 2) - self.yOffset, 0, 0)
   end
   love.graphics.setCanvas(currentCanvas)
   love.graphics.setShader(self.shader)

@@ -132,12 +132,12 @@ local function get(letter, rank, tileWidth, tileHeight)
 
   local yOffset = 0
   if not isFirstRow(letter) then
-    yOffset = tileHeight + 1
+    yOffset = tileHeight + 2
   end
 
   local spritesheet = Letter.Spritesheets[rank]
   local tileIndex = getIndex(letter) - 1
-  local xOffset = tileIndex - 1
+  local xOffset = (tileIndex * 2) + 1
 
   local quad = love.graphics.newQuad(
     (tileIndex * tileWidth) + xOffset,

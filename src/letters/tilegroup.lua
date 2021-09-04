@@ -9,7 +9,8 @@ function TileGroup.new(tiles)
   self.x = 7
   self.y = 0
 
-  self.cellSize = Tile.Size
+  self.cellWidth = Tile.Width
+  self.cellHeight = Tile.Height
 
   self.tile00 = Tile.new(tiles[1])
   self.tile01 = Tile.new(tiles[2])
@@ -67,13 +68,13 @@ function TileGroup:draw(x, y, overrideX, overrideY)
 
   love.graphics.push("all")
   if not self.isHalf or (self.isHalf and self.isLeftHalf) then
-    self.tile00:draw(x + (localX * self.cellSize), y + (localY * self.cellSize))
-    self.tile01:draw(x + (localX * self.cellSize), y + ((localY + 1) * self.cellSize))
+    self.tile00:draw(x + (localX * self.cellWidth), y + (localY * self.cellHeight))
+    self.tile01:draw(x + (localX * self.cellWidth), y + ((localY + 1) * self.cellHeight))
   end
 
   if not self.isHalf or (self.isHalf and not self.isLeftHalf) then
-    self.tile10:draw(x + ((localX + 1) * self.cellSize), y + (localY * self.cellSize))
-    self.tile11:draw(x + ((localX + 1) * self.cellSize), y + ((localY + 1) * self.cellSize))
+    self.tile10:draw(x + ((localX + 1) * self.cellWidth), y + (localY * self.cellHeight))
+    self.tile11:draw(x + ((localX + 1) * self.cellWidth), y + ((localY + 1) * self.cellHeight))
   end
 
   love.graphics.pop()

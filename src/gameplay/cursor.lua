@@ -20,8 +20,8 @@ function Cursor:update(dt)
   end
 end
 
-function Cursor:getColumn(cellSize)
-  return math.floor((self.currentX - self.startX) / cellSize)
+function Cursor:getColumn(cellWidth)
+  return math.floor((self.currentX - self.startX) / cellWidth)
 end
 
 function Cursor:draw()
