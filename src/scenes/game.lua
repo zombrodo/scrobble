@@ -252,16 +252,12 @@ function GameScene:update(dt)
     self.dropTimer = self.dropTimer - (dt * self.dropSpeed)
   end
 
+  self.currentTile:update(dt)
+
   self:checkCursor()
   self:fall()
 
-  for x = 0, self.grid.xCells do
-    for y = 0, self.grid.yCells do
-      if self.grid:check(x, y) then
-        self.grid:get(x, y):update(dt)
-      end
-    end
-  end
+  self.grid:update(dt)
 end
 
 function GameScene:__moveRight()

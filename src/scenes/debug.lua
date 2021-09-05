@@ -12,10 +12,14 @@ DebugScene.__index = DebugScene
 
 function DebugScene:reset()
   self.grid:clear()
-  self.grid:set(6, 4, Tile.new(Letter.A))
-  self.grid:set(7, 4, Tile.new(Letter.Y))
-  self.grid:set(8, 4, Tile.new(Letter.D))
-  self.grid:set(9, 4, Tile.new(Letter.Q))
+  self.grid:set(6, 4, Tile.new(Letter.L))
+  self.grid:set(7, 4, Tile.new(Letter.I))
+  self.grid:set(8, 4, Tile.new(Letter.N))
+  self.grid:set(9, 4, Tile.new(Letter.E))
+  self.grid:set(6, 6, Tile.new(Letter.B))
+  self.grid:set(7, 6, Tile.new(Letter.O))
+  self.grid:set(8, 6, Tile.new(Letter.I))
+  self.grid:set(9, 6, Tile.new(Letter.L))
 end
 
 function DebugScene.new()
@@ -82,7 +86,7 @@ function DebugScene:fall()
 end
 
 function DebugScene:step(dt)
-  self.ui:update(dt)
+  -- self.ui:update(dt)
   self.cursor:update(dt)
   self:checkCursor()
   if self.cursor.justCompleted then
@@ -105,6 +109,8 @@ function DebugScene:update(dt)
   if not self.stepping then
     self:step(dt)
   end
+  self.grid:update(dt)
+  self.ui:update(dt)
   self.lastDt = dt
 end
 
@@ -121,7 +127,7 @@ end
 function DebugScene:draw()
   love.graphics.push("all")
   self.ui:draw()
-  self.cursor:draw()
+  -- self.cursor:draw()
   love.graphics.pop()
 end
 

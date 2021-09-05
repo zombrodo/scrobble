@@ -60,6 +60,13 @@ function TileGroup:rotateAnticlockwise()
   self.tile11 = temp11
 end
 
+function TileGroup:update(dt)
+  self.tile00:update(dt)
+  self.tile01:update(dt)
+  self.tile10:update(dt)
+  self.tile11:update(dt)
+end
+
 function TileGroup:draw(x, y, overrideX, overrideY)
   -- TODO: fix this, so we can draw irrespective of whether we're in the  grid
   -- or not.

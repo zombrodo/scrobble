@@ -5,6 +5,15 @@ function Sprite.new(sprite, quad, qw, qh)
   local self = setmetatable({}, Sprite)
   self.sprite = sprite
   self.quad = quad
+  self.canvas = love.graphics.newCanvas(qw, qh)
+  -- FIXME: Canvas just for mesh experiment
+  love.graphics.setCanvas(self.canvas)
+  if self.quad then
+    love.graphics.draw(self.sprite, self.quad)
+  else
+    love.graphics.draw(self.sprite)
+  end
+  love.graphics.setCanvas()
   self.qh = qh
   self.qw = qw
   return self

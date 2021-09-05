@@ -233,26 +233,36 @@ function Grid:fallTo(startX, startY, endX, endY)
   end)
 end
 
+function Grid:update(dt)
+  for y = 0, self.yCells do
+    for x = 0, self.xCells do
+      if self.items[y][x] then
+        self.items[y][x]:update(dt)
+      end
+    end
+  end
+end
+
 function Grid:draw()
   love.graphics.push("all")
   -- Grid
-  -- love.graphics.setColor(self.colour)
-  -- for r = 0, self.yCells do
-  --       love.graphics.line(
-  --         self.x,
-  --         self.y + (r * self.cellHeight),
-  --         self.x + (self.xCells * self.cellWidth),
-  --         self.y + (r * self.cellHeight)
-  --       )
-  -- end
+  love.graphics.setColor(self.colour)
+  for r = 0, self.yCells do
+        love.graphics.line(
+          self.x,
+          self.y + (r * self.cellHeight),
+          self.x + (self.xCells * self.cellWidth),
+          self.y + (r * self.cellHeight)
+        )
+  end
 
-  -- for c = 0, self.xCells do
-  --     love.graphics.line(
-  --       self.x + (c * self.cellWidth),
-  --       self.y,
-  --       self.x + (c * self.cellWidth),
-  --       self.y + (self.yCells * self.cellHeight))
-  -- end
+  for c = 0, self.xCells do
+      love.graphics.line(
+        self.x + (c * self.cellWidth),
+        self.y,
+        self.x + (c * self.cellWidth),
+        self.y + (self.yCells * self.cellHeight))
+  end
 
   -- Tiles
   love.graphics.setColor(1, 1, 1, 1)

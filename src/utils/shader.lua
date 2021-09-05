@@ -6,28 +6,28 @@ local function lastModified(filePath)
   return info.modtime
 end
 
-function Shader.new(pixelPath)
+function Shader.new(shaderPath)
   local self = setmetatable({}, Shader)
   self.watch = {
-    [pixelPath] = lastModified(pixelPath),
+    [shaderPath] = lastModified(shaderPath),
   }
-  self.pixelPath = pixelPath
-  self.shader = love.graphics.newShader(pixelPath)
+  self.shaderPath = shaderPath
+  self.shader = love.graphics.newShader(shaderPath)
   return self
 end
 
 function Shader:changes()
-  return self.watch[self.pixelPath] ~= lastModified(self.pixelPath)
+  return self.watch[self.shaderPath] ~= lastModified(self.shaderPath)
 end
 
 function Shader:swap()
   local status, message = love.graphics.validateShader(
-    false, self.pixelPath
+    false, self.shaderPath
   )
 
   if status then
-    self.shader = love.graphics.newShader(self.pixelPath)
-    self.watch[self.pixelPath] = lastModified(self.pixelPath)
+    self.shader = love.graphics.newShader(self.shaderPath)
+    self.watch[self.shaderPath] = lastModified(self.shaderPath)
     return true
   end
 
@@ -40,6 +40,14 @@ function Shader:update(dt)
     return self:swap()
   end
   return false
+end
+
+function Shader:attach()
+  love.graphics.setShader(self.shader)
+end
+
+function Shader:detach()
+  love.graphics.setShader()
 end
 
 function Shader:send(variable, value)

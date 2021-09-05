@@ -37,6 +37,12 @@ function UpNext:shift()
     :oncomplete(function() s.complete(s) end)
 end
 
+function UpNext:update(dt)
+  for i = 0, 4 do
+    self.bag:getUpNext(i):update(dt)
+  end
+end
+
 function UpNext:draw()
   love.graphics.push("all")
   local currentCanvas = love.graphics.getCanvas()
