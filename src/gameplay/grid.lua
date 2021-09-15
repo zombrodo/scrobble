@@ -14,8 +14,7 @@ function Grid:new(rules, xCells, yCells, cellWidth, cellHeight)
   grid.cellWidth = cellWidth
   grid.cellHeight = cellHeight
 
-  -- grid.colour = Colour.fromBytes(8, 20, 30, 0.7)
-  grid.colour = Colour.fromHex("#a35233")
+  grid.colour = Colour.fromHex("#c7a582")
 
   grid.items = {}
   for y = 0, yCells do
@@ -145,8 +144,10 @@ end
 
 function Grid:__getIndexedTile(x, y, index)
   if self:check(x, y) then
+    local tile = self:get(x, y)
     return {
-      letter = Letter.toChar(self:get(x, y).letter),
+      isSpecial = tile.letter == Letter.Special,
+      letter = Letter.toChar(tile.letter),
       index = index
     }
   end
@@ -157,7 +158,7 @@ function Grid:getRow(y)
   local currentWord = {}
   for x = 0, self.xCells do
     local tile = self:__getIndexedTile(x, y, x)
-    if tile then
+    if tile and not tile.isSpecial then
       table.insert(currentWord, tile)
     else
       if #currentWord > 0 then
@@ -178,7 +179,7 @@ function Grid:getColumn(x)
   local currentWord = {}
   for y = 0, self.yCells do
     local tile = self:__getIndexedTile(x, y, y)
-    if tile then
+    if tile and not tile.isSpecial then
       table.insert(currentWord, tile)
     else
       if #currentWord > 0 then
@@ -245,6 +246,7 @@ end
 
 function Grid:draw()
   love.graphics.push("all")
+  love.graphics.setLineWidth(3)
   -- Grid
   love.graphics.setColor(self.colour)
   for r = 0, self.yCells do
