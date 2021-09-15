@@ -47,11 +47,13 @@ function Grid:remove(x, y)
 end
 
 function Grid:anythingLeft(tileGroup)
+  if tileGroup.y < 0 then return false end
   return self:check(tileGroup.x - 1, tileGroup.y)
     or self:check(tileGroup.x, tileGroup.y + 1)
 end
 
 function Grid:anythingRight(tileGroup)
+  if tileGroup.y < 0 then return false end
   return self:check(tileGroup.x + 3, tileGroup.y)
     or self:check(tileGroup.x + 3, tileGroup.y + 1)
 end

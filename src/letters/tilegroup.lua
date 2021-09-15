@@ -7,7 +7,7 @@ function TileGroup.new(tiles)
   local self = setmetatable({}, TileGroup)
 
   self.x = 7
-  self.y = 0
+  self.y = -2
 
   self.cellWidth = Tile.Width
   self.cellHeight = Tile.Height
