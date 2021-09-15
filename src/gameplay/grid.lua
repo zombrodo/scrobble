@@ -28,9 +28,6 @@ end
 
 function Grid:set(x, y, cell)
   self.items[y][x] = cell
-  if cell.isSpecialTile then
-    self:detonate(x, y, cell.rank)
-  end
 end
 
 function Grid:get(x, y)
@@ -42,7 +39,7 @@ function Grid:check(x, y)
 end
 
 function Grid:mark(x, y)
-  self.items[y][x].marked = true
+  self.items[y][x]:mark()
 end
 
 function Grid:remove(x, y)
@@ -77,13 +74,30 @@ end
 
 function Grid:setGroup(tileGroup)
    -- TODO: tidy this up, combine branches.
+   -- Doubly so after adding new detonate code.
    if tileGroup.isHalf then
     if tileGroup.isLeftHalf then
       self:set(tileGroup.x, tileGroup.y, tileGroup.tile00)
       self:set(tileGroup.x, tileGroup.y + 1, tileGroup.tile01)
+
+      if tileGroup.tile00.isSpecialTile then
+        self:detonate(tileGroup.x, tileGroup.y, tileGroup.tile00.rank)
+      end
+
+      if tileGroup.tile01.isSpecialTile then
+        self:detonate(tileGroup.x, tileGroup.y + 1, tileGroup.tile01.rank)
+      end
     else
       self:set(tileGroup.x + 1, tileGroup.y, tileGroup.tile10)
       self:set(tileGroup.x + 1, tileGroup.y + 1, tileGroup.tile11)
+
+      if tileGroup.tile10.isSpecialTile then
+        self:detonate(tileGroup.x + 1, tileGroup.y, tileGroup.tile10.rank)
+      end
+
+      if tileGroup.tile11.isSpecialTile then
+        self:detonate(tileGroup.x + 1, tileGroup.y + 1, tileGroup.tile11.rank)
+      end
     end
     return
   end
@@ -108,6 +122,27 @@ function Grid:setGroup(tileGroup)
   if right or both or bottom then
     self:set(tileGroup.x + 1, tileGroup.y, tileGroup.tile10)
     self:set(tileGroup.x + 1, tileGroup.y + 1, tileGroup.tile11)
+  end
+
+  -- Once everything is set, detonate if needed
+  if left or both or bottom then
+    if tileGroup.tile00.isSpecialTile then
+      self:detonate(tileGroup.x, tileGroup.y, tileGroup.tile00.rank)
+    end
+
+    if tileGroup.tile01.isSpecialTile then
+      self:detonate(tileGroup.x, tileGroup.y + 1, tileGroup.tile01.rank)
+    end
+  end
+
+  if right or both or bottom then
+    if tileGroup.tile10.isSpecialTile then
+      self:detonate(tileGroup.x + 1, tileGroup.y, tileGroup.tile10.rank)
+    end
+
+    if tileGroup.tile11.isSpecialTile then
+      self:detonate(tileGroup.x + 1, tileGroup.y + 1, tileGroup.tile11.rank)
+    end
   end
 
   -- Return whether or not we should continue
