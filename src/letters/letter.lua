@@ -104,10 +104,22 @@ Letter.Spritesheets = {
   [TileRank.Gold]   = love.graphics.newImage("assets/gold_tile.png")
 }
 
+Letter.MarkedSpritesheets = {
+  [TileRank.Bronze] = love.graphics.newImage("assets/bronze_marked.png"),
+  [TileRank.Silver] = love.graphics.newImage("assets/silver_marked.png"),
+  [TileRank.Gold]   = love.graphics.newImage("assets/gold_marked.png")
+}
+
 Letter.SpecialTiles = {
   [TileRank.Bronze] = love.graphics.newImage("assets/bronze_clear.png"),
   [TileRank.Silver] = love.graphics.newImage("assets/silver_clear.png"),
   [TileRank.Gold] = love.graphics.newImage("assets/gold_clear.png")
+}
+
+Letter.MarkedSpecialTiles = {
+  [TileRank.Bronze] = love.graphics.newImage("assets/bronze_clear_marked.png"),
+  [TileRank.Silver] = love.graphics.newImage("assets/silver_clear_marked.png"),
+  [TileRank.Gold] = love.graphics.newImage("assets/gold_clear_marked.png")
 }
 
 local alphabet = "abcdefghijklmnopqrstuvwxyz"
@@ -127,7 +139,7 @@ end
 
 local function get(letter, rank, tileWidth, tileHeight)
   if letter == Letter.Special then
-    return Sprite.new(Letter.SpecialTiles[rank])
+    return Sprite.new(Letter.SpecialTiles[rank]), Sprite.new(Letter.MarkedSpecialTiles[rank])
   end
 
   local yOffset = 0
@@ -136,6 +148,7 @@ local function get(letter, rank, tileWidth, tileHeight)
   end
 
   local spritesheet = Letter.Spritesheets[rank]
+  local marked = Letter.MarkedSpritesheets[rank]
   local tileIndex = getIndex(letter) - 1
   local xOffset = (tileIndex * 2) + 1
 
@@ -146,11 +159,22 @@ local function get(letter, rank, tileWidth, tileHeight)
     tileHeight,
     spritesheet
   )
-  return Sprite.new(spritesheet, quad, tileWidth, tileHeight)
+
+  local markedQuad = love.graphics.newQuad(
+    (tileIndex * tileWidth) + xOffset,
+    yOffset,
+    tileWidth,
+    tileHeight,
+    marked
+  )
+
+  return Sprite.new(spritesheet, quad, tileWidth, tileHeight),
+    Sprite.new(marked, markedQuad, tileWidth, tileHeight)
 end
 
 function Letter.sprite(letter, rank, tileWidth, tileHeight)
-  return get(letter, rank, tileWidth, tileHeight)
+  local sprite, marked = get(letter, rank, tileWidth, tileHeight)
+  return sprite, marked
 end
 
 return Letter
