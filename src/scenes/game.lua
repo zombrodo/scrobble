@@ -13,6 +13,7 @@ local UpNext = require "src.ui.upnext"
 local Tile = require "src.letters.tile"
 
 local String = require "src.utils.string"
+local SoundBank = require "src.utils.sound"
 
 local GameScene = {}
 GameScene.__index = GameScene
@@ -32,7 +33,9 @@ function GameScene.new()
   self.dropTimer = self.dropTimerMax * 8
   self.dropSpeed = 20
 
-  self.paused = false
+  self.paused = true
+
+  self.soundBank = SoundBank.new()
 
   self.lastColumnChecked = -1
   return self
@@ -75,6 +78,10 @@ function GameScene:enter()
   self.cursor = Cursor.new(self.grid.x, self.grid.x + self.grid.w)
   -- Dictionary
   self.dictionary:load("assets/dictionary.txt")
+  -- Sound
+  self.soundBank:load("assets/placement.mp3", "tile_placement")
+  self.soundBank:load("assets/word.mp3", "word_found")
+  self.soundBank:load("assets/gather.mp3", "tile_gathered")
 end
 
 local function map(fn, coll)
@@ -159,6 +166,10 @@ function GameScene:__markTiles(results)
       end
     end
   end
+
+  if #results > 0 then
+    self.soundBank:play("word_found")
+  end
 end
 
 function GameScene:findWords(wasHalfSet)
@@ -191,6 +202,7 @@ function GameScene:dropTile()
     self.currentTile:drop()
   else
     local wasHalfSet = self.grid:setGroup(self.currentTile)
+    self.soundBank:play("tile_placement")
     self:findWords(wasHalfSet)
     if not wasHalfSet then
       self.currentTile = self.bag:get()
@@ -212,10 +224,21 @@ function GameScene:checkCursor()
     if self.grid:check(column, y) and self.grid:get(column, y).marked then
       self.grid:get(column, y):gather()
       local grid = self.grid
+      local soundbank = self.soundBank
       Tick.delay(function()
         grid:remove(column, y)
+        soundbank:play("tile_gathered", true)
       end, 0.4)
     end
+  end
+end
+
+function GameScene:onFallComplete(x, y)
+  local game = self
+  return function()
+    local row = game:__findWordsRow(y)
+    local column = game:__findWordsColumn(x)
+    game:__markTiles(append(row, column))
   end
 end
 
@@ -229,7 +252,7 @@ function GameScene:fall()
           and (goalY + 1 < self.grid.yCells) do
           goalY = goalY + 1
         end
-        self.grid:fallTo(x, y, x, goalY)
+        self.grid:fallTo(x, y, x, goalY, self:onFallComplete(x, goalY))
       end
     end
   end
