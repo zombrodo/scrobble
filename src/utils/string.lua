@@ -20,4 +20,12 @@ function String.split(str, sep)
   return result
 end
 
+function String.tokens(str)
+  local result = {}
+  for char in string.gmatch(str, ".") do
+    table.insert(result, char)
+  end
+  return result
+end
+
 return String

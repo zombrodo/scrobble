@@ -10,6 +10,7 @@ local Roomy = require "lib.roomy"
 
 local GameScene = require "src.scenes.game"
 local DebugScene = require "src.scenes.debug"
+local MenuScene = require "src.scenes.menu"
 
 local Colour = require "src.utils.colour"
 SceneManager = nil
@@ -20,7 +21,7 @@ function love.load()
   mainCanvas = love.graphics.newCanvas(GAME_WIDTH, GAME_HEIGHT)
   SceneManager = Roomy.new()
   SceneManager:hook({exclude = { "draw" }})
-  SceneManager:enter(GameScene.new())
+  SceneManager:enter(MenuScene.new())
 end
 
 function love.update(dt)
