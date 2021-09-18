@@ -15,6 +15,10 @@ end
 function MenuScene:enter()
   self.ui = Plan.new()
 
+  local topHalf = Plan.RuleFactory.half("top")
+
+  local titleContainer = Container:new(topHalf)
+
   local titleRules = Rules.new()
     :addX(Plan.center())
     :addY(Plan.center())
@@ -22,7 +26,8 @@ function MenuScene:enter()
     :addHeight(Plan.auto())
 
   self.title = Title:new(titleRules, "scrobble")
-  self.ui:addChild(self.title)
+  titleContainer:addChild(self.title)
+  self.ui:addChild(titleContainer)
 end
 
 function MenuScene:update(dt)
