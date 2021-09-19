@@ -5,7 +5,9 @@ function Sprite.new(sprite, quad, qw, qh)
   local self = setmetatable({}, Sprite)
   self.sprite = sprite
   self.quad = quad
-  self.canvas = love.graphics.newCanvas(qw, qh)
+  local cw = (quad and qw) or sprite:getWidth()
+  local ch = (quad and qh) or sprite:getHeight()
+  self.canvas = love.graphics.newCanvas(cw, ch)
   -- FIXME: Canvas just for mesh experiment
   love.graphics.setCanvas(self.canvas)
   if self.quad then

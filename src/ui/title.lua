@@ -31,20 +31,6 @@ local function asDisplayTiles(text)
   return sprites
 end
 
-local function markRandomTiles(tiles)
-  for i, tile in ipairs(tiles) do
-    if love.math.random() > 0.6 then
-      tile:mark()
-    else
-      tile:unmark()
-    end
-  end
-end
-
-local function startTilePicker(tiles)
-  Tick.recur(function() markRandomTiles(tiles) end, 1.5)
-end
-
 function Title:new(rules, text)
   local title = Title.super.new(self, rules)
   title.tiles = asDisplayTiles(text)
@@ -55,9 +41,6 @@ function Title:new(rules, text)
   title.gutter = 5
   title.width = title.width + (#title.tiles * title.gutter)
   title.height = title.tiles[1]:getHeight()
-
-  -- markRandomTiles(title.tiles)
-  -- startTilePicker(title.tiles)
 
   return title
 end
