@@ -9,6 +9,7 @@ local Bag = require "src.gameplay.bag"
 local Match = require "src.gameplay.match"
 
 local UpNext = require "src.ui.upnext"
+local Scoreboard = require "src.ui.scores"
 
 local Tile = require "src.letters.tile"
 
@@ -33,7 +34,7 @@ function GameScene.new()
   self.dropTimer = self.dropTimerMax * 8
   self.dropSpeed = 20
 
-  self.paused = true
+  self.paused = false
 
   self.soundBank = SoundBank.new()
 
@@ -64,15 +65,24 @@ function GameScene:enter()
 
   self.grid = Grid:new(gridRules, gridWidth, gridHeight, cellWidth, cellHeight)
 
+  local scoreboardRules = Rules.new()
+    :addX(Plan.max(4 * cellWidth))
+    :addY(Plan.center())
+    :addWidth(Plan.pixel(4 * cellWidth))
+    :addHeight(gridRules:getHeight():clone())
+
+  self.scoreboard = Scoreboard:new(scoreboardRules)
+
   local boardRules = Rules.new()
   boardRules:addX(Plan.center())
     :addY(Plan.center())
-    :addWidth(Plan.pixel(upNextRules:getWidth().value + gridRules:getWidth().value))
+    :addWidth(Plan.pixel(upNextRules:getWidth().value + gridRules:getWidth().value + scoreboardRules:getWidth().value + cellWidth))
     :addHeight(Plan.pixel(cellHeight * gridHeight))
 
   local board = Container:new(boardRules)
   board:addChild(self.upNext)
   board:addChild(self.grid)
+  board:addChild(self.scoreboard)
   self.ui:addChild(board)
   -- Cursor
   self.cursor = Cursor.new(self.grid.x, self.grid.x + self.grid.w)
@@ -225,7 +235,9 @@ function GameScene:checkCursor()
       self.grid:get(column, y):gather()
       local grid = self.grid
       local soundbank = self.soundBank
+      local scoreboard = self.scoreboard
       Tick.delay(function()
+        scoreboard:send(grid:get(column, y))
         grid:remove(column, y)
         soundbank:play("tile_gathered", true)
       end, 0.4)
@@ -330,6 +342,11 @@ function GameScene:draw()
     self.grid.x + Tile.Width / 2,
     self.grid.y + Tile.Height / 2
   )
+
+  love.graphics.rectangle("line", self.upNext.x, self.upNext.y, self.upNext.w, self.upNext.h)
+  love.graphics.rectangle("line", self.grid.x, self.grid.y, self.grid.w, self.grid.h)
+  love.graphics.rectangle("line", self.scoreboard.x, self.scoreboard.y, self.scoreboard.w, self.scoreboard.h)
+
   love.graphics.pop()
 end
 
