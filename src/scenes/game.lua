@@ -38,6 +38,8 @@ function GameScene.new()
 
   self.soundBank = SoundBank.new()
 
+  self.wordMatches = {}
+
   self.lastColumnChecked = -1
   return self
 end
@@ -163,22 +165,34 @@ function GameScene:__findWordsColumn(x)
   return self:__findWords(self.grid:getColumn(x), x, "y")
 end
 
-function GameScene:__markTiles(results)
-  for i, result in ipairs(results) do
-    if result.direction == "x" then
-      for x = result.first, result.last do
-        self.grid:mark(x, result.index)
-      end
-    end
-    if result.direction == "y" then
-      for y = result.first, result.last do
-        self.grid:mark(result.index, y)
-      end
+function GameScene:___alreadyFound(match)
+  print("checking match for", match.word)
+  for i, m in ipairs(self.wordMatches) do
+    if m:equals(match) then
+      print("it has already been found")
+      return true
     end
   end
+  print("it hasn't been found")
+  return false
+end
 
-  if #results > 0 then
-    self.soundBank:play("word_found")
+function GameScene:__markTiles(results)
+  for i, result in ipairs(results) do
+    if not self:___alreadyFound(result) then
+      if result.direction == "x" then
+        for x = result.first, result.last do
+          self.grid:mark(x, result.index)
+        end
+      end
+      if result.direction == "y" then
+        for y = result.first, result.last do
+          self.grid:mark(result.index, y)
+        end
+      end
+      table.insert(self.wordMatches, result)
+      self.soundBank:play("word_found")
+    end
   end
 end
 
@@ -223,6 +237,21 @@ function GameScene:dropTile()
   end
 end
 
+function GameScene:__removeMatch(x, y)
+  local toRemove = {}
+  for i, match in ipairs(self.wordMatches) do
+    match:remove(x, y)
+    if match:isCleared() then
+      print("Removing the last letter for ", match.word)
+      table.insert(toRemove, i)
+    end
+  end
+
+  for i, index in ipairs(toRemove) do
+    table.remove(self.wordMatches, index)
+  end
+end
+
 function GameScene:checkCursor()
   local column = self.cursor:getColumn(Tile.Width)
   if column == self.lastCheckedColumn then
@@ -236,7 +265,9 @@ function GameScene:checkCursor()
       local grid = self.grid
       local soundbank = self.soundBank
       local scoreboard = self.scoreboard
+      local game = self
       Tick.delay(function()
+        game:__removeMatch(column, y)
         scoreboard:send(grid:get(column, y))
         grid:remove(column, y)
         soundbank:play("tile_gathered", true)
