@@ -240,9 +240,10 @@ end
 function GameScene:__removeMatch(x, y)
   local toRemove = {}
   for i, match in ipairs(self.wordMatches) do
-    match:remove(x, y)
+    match:remove(x, y, self.grid:get(x, y))
     if match:isCleared() then
       print("Removing the last letter for ", match.word)
+      self.scoreboard:addWord(match)
       table.insert(toRemove, i)
     end
   end

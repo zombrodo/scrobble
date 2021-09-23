@@ -6,11 +6,11 @@ local Mesh = require "src.utils.mesh"
 local DisplayTile = {}
 DisplayTile.__index = DisplayTile
 
-function DisplayTile.new(letter, rank)
+function DisplayTile.new(letter, rank, scale)
   local self = setmetatable({}, DisplayTile)
   self.letter = letter
   self.rank = rank
-  self.scale = 2
+  self.scale = scale or 2
   self.width = Tile.Width * self.scale
   self.height = Tile.Height * self.scale
   self.sprite, self.markedSprite = Letter.sprite(self.letter, self.rank, Tile.Width, Tile.Height)
