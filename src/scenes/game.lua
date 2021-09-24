@@ -137,6 +137,19 @@ function GameScene:__longestValidWord(words)
   end
 end
 
+function GameScene:__findMatchRanks(index, direction, first, last)
+  local ranks = {}
+  for i = first, last do
+    if direction == "x" then
+      table.insert(ranks, self.grid:get(i, index).rank)
+    end
+    if direction == "y" then
+      table.insert(ranks, self.grid:get(index, i).rank)
+    end
+  end
+  return ranks
+end
+
 function GameScene:__findWords(letters, index, direction)
   local result = {}
   for i, list in ipairs(letters) do
@@ -149,7 +162,19 @@ function GameScene:__findWords(letters, index, direction)
         local first, last = string.find(word, bestWord)
         table.insert(
           result,
-          Match.new(bestWord, index, direction, indicies[first], indicies[last])
+          Match.new(
+            bestWord,
+            index,
+            direction,
+            indicies[first],
+            indicies[last],
+            self:__findMatchRanks(
+              index,
+              direction,
+              indicies[first],
+              indicies[last]
+            )
+          )
         )
       end
     end
@@ -240,7 +265,7 @@ end
 function GameScene:__removeMatch(x, y)
   local toRemove = {}
   for i, match in ipairs(self.wordMatches) do
-    match:remove(x, y, self.grid:get(x, y))
+    match:remove(x, y)
     if match:isCleared() then
       print("Removing the last letter for ", match.word)
       self.scoreboard:addWord(match)

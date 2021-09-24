@@ -4,7 +4,7 @@ Match.__index = Match
 Match.Y = "y"
 Match.X = "x"
 
-function Match.new(word, index, direction, first, last)
+function Match.new(word, index, direction, first, last, ranks)
   local self = setmetatable({}, Match)
   self.word = word
   self.length = #word
@@ -12,7 +12,7 @@ function Match.new(word, index, direction, first, last)
   self.direction = direction
   self.first = first
   self.last = last
-  self.ranks = {}
+  self.ranks = ranks
   return self
 end
 
@@ -24,16 +24,13 @@ function Match:equals(other)
     and self.last == other.last
 end
 
-function Match:remove(x, y, tile)
+function Match:remove(x, y)
   if self.direction == "x" then
-    self.ranks[(self.last - x) + 1] = tile.rank
     if x >= self.first and x <= self.last then
       self.length = self.length - 1
     end
   end
   if self.direction == "y" then
-    print("y index", self.first - y)
-    self.ranks[(self.last - y) + 1] = tile.rank
     if y >= self.first and y <= self.last then
       self.length = self.length - 1
     end
