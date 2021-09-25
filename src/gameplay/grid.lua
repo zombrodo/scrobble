@@ -54,8 +54,8 @@ end
 
 function Grid:anythingRight(tileGroup)
   if tileGroup.y < 0 then return false end
-  return self:check(tileGroup.x + 3, tileGroup.y)
-    or self:check(tileGroup.x + 3, tileGroup.y + 1)
+  return self:check(tileGroup.x + 1, tileGroup.y)
+    or self:check(tileGroup.x + 2, tileGroup.y + 1)
 end
 
 function Grid:anythingBelow(tileGroup)
