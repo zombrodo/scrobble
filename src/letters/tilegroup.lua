@@ -7,7 +7,7 @@ function TileGroup.new(tiles)
   local self = setmetatable({}, TileGroup)
 
   self.x = 7
-  self.y = -2
+  self.y = 0
 
   self.cellWidth = Tile.Width
   self.cellHeight = Tile.Height
@@ -65,6 +65,19 @@ function TileGroup:update(dt)
   self.tile01:update(dt)
   self.tile10:update(dt)
   self.tile11:update(dt)
+end
+
+function TileGroup:tiles()
+  local result = {}
+  result[0] = {}
+  result[1] = {}
+
+  result[0][0] = self.tile00
+  result[0][1] = self.tile01
+  result[1][0] = self.tile10
+  result[1][1] = self.tile11
+
+  return result
 end
 
 function TileGroup:draw(x, y, overrideX, overrideY)

@@ -15,6 +15,10 @@ function Queue:peek(index)
   return self.items[index]
 end
 
+function Queue:isEmpty()
+  return #self.items == 0
+end
+
 function Queue:enqueue(item)
   table.insert(self.items, item)
 end

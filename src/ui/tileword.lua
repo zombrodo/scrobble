@@ -11,7 +11,6 @@ TileWord.__index = TileWord
 local function asDisplayTiles(text, ranks)
   local sprites = {}
   for i, char in ipairs(String.tokens(text)) do
-    print(text, ranks[i])
     local tile = DisplayTile.new(Letter.fromChar(char), ranks[i], 0.5)
     table.insert(sprites, tile)
   end

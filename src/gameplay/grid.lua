@@ -255,7 +255,7 @@ function Grid:finishFalling(y)
   end
 end
 
-function Grid:fallTo(startX, startY, endX, endY, onComplete)
+function Grid:fallTo(startX, startY, endX, endY)
   local tile = self:get(startX, startY)
   local grid = self
   self:remove(startX, startY)
@@ -267,7 +267,6 @@ function Grid:fallTo(startX, startY, endX, endY, onComplete)
     :ease("expoout")
     :oncomplete(function()
     grid:finishFalling(endY)
-    onComplete()
     grid:set(endX, endY, tile)
   end)
 end

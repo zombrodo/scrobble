@@ -3,6 +3,8 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 GAME_WIDTH = 1280
 GAME_HEIGHT = 720
 
+DEBUG_MODE = true
+
 Tick = require "lib.tick"
 Flux = require "lib.flux"
 
@@ -50,4 +52,11 @@ function love.draw()
     mainCanvas:getWidth() / 2,
     mainCanvas:getHeight() / 2
   )
+  if DEBUG_MODE then
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle('fill', 0, 0, 256, 64)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print('FPS: ' .. love.timer.getFPS(), 0, 0)
+    love.graphics.print('Memory: ' .. math.floor(collectgarbage 'count') .. ' kb', 0, 16)
+  end
 end

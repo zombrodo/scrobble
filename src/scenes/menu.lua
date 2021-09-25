@@ -27,7 +27,7 @@ function MenuScene:enter()
     :addWidth(Plan.auto())
     :addHeight(Plan.auto())
 
-  local title = Title:new(titleRules, "scrobble")
+  local title = Title:new(titleRules, "wordfall")
   topHalf:addChild(title)
   gutter:addChild(topHalf)
   -- Buttons

@@ -37,6 +37,12 @@ function UpNext:shift()
     :oncomplete(function() s.complete(s) end)
 end
 
+function UpNext:receive(action, payload)
+  if action == "tile.nextGroup" then
+    self:shift()
+  end
+end
+
 function UpNext:update(dt)
   for i = 0, 4 do
     self.bag:getUpNext(i):update(dt)

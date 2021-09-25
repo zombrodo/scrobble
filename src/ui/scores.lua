@@ -11,6 +11,7 @@ local Scores = Container:extend()
 
 Scores.heading = Fonts.wakuwaku(16)
 Scores.value = Fonts.wakuwaku(21)
+Scores.colour = Colour.fromHex("#2E2E2E")
 
 function Scores:new(rules)
   local scores = Scores.super.new(self, rules)
@@ -47,7 +48,6 @@ end
 
 function Scores:addWord(match)
   table.insert(self.words, TileWord.new(match.word, match.ranks))
-  print(#self.words)
   self.wordsCleared = self.wordsCleared + 1
   if #match.word > self.longestLength then
     self.longestLength = #match.word
@@ -70,7 +70,7 @@ function Scores:draw()
   love.graphics.push("all")
   love.graphics.setCanvas(self.canvas)
   love.graphics.clear()
-  love.graphics.setColor(0, 0, 0, 1)
+  love.graphics.setColor(Scores.colour)
   local currentY = 0
   -- Score
   love.graphics.draw(self.scoreText)

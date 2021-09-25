@@ -36,7 +36,6 @@ function Button:update(dt)
 end
 
 function Button:onClick()
-  print("clicked")
   self.onClickHandler()
 end
 

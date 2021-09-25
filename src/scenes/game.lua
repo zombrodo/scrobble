@@ -2,100 +2,129 @@ local Plan = require "lib.plan"
 local Container = Plan.Container
 local Rules = Plan.Rules
 
-local Grid = require "src.gameplay.grid"
-local Cursor = require "src.gameplay.cursor"
 local Dictionary = require "src.gameplay.dictionary"
 local Bag = require "src.gameplay.bag"
+local Grid = require "src.gameplay.grid"
+local Cursor = require "src.gameplay.cursor"
 local Match = require "src.gameplay.match"
+
+local Tile = require "src.letters.tile"
 
 local UpNext = require "src.ui.upnext"
 local Scoreboard = require "src.ui.scores"
 
-local Tile = require "src.letters.tile"
-
+local EventQueue = require "src.utils.event"
 local String = require "src.utils.string"
-local SoundBank = require "src.utils.sound"
+
+local SoundManager = require "src.handlers.sound"
 
 local GameScene = {}
 GameScene.__index = GameScene
 
 function GameScene.new()
   local self = setmetatable({}, GameScene)
+  -- UI
   self.ui = Plan.new()
-
+  -- Game Settings and Controllers
   self.minWordLength = 3
   self.maxWordLength = 7
 
   self.dictionary = Dictionary.new(self.minWordLength, self.maxWordLength)
   self.bag = Bag.new()
-  self.currentTile = self.bag:shift() -- stateful get
 
+  -- Grid Settings
+  self.gridWidth = 16
+  self.gridHeight = 12
+  self.cellWidth = Tile.Width
+  self.cellHeight = Tile.Height
+
+  -- Current Tile
+  self.currentTile = self.bag:shift()
   self.dropTimerMax = 0.7
-  self.dropTimer = self.dropTimerMax * 8
+  self.dropTimer = self.dropTimerMax
   self.dropSpeed = 20
 
+  -- Game State
   self.paused = false
+  self.matchesBuffer = {}
+  self.placementBuffer = {}
 
-  self.soundBank = SoundBank.new()
+  -- Event Queue
+  self.eventQueue = EventQueue.new()
 
-  self.wordMatches = {}
-
-  self.lastColumnChecked = -1
+  -- Managers
+  self.soundManager = SoundManager.new()
   return self
 end
 
 function GameScene:enter()
-  -- Grid setup
-  local gridWidth = 16
-  local gridHeight = 12
-  local cellWidth = Tile.Width
-  local cellHeight = Tile.Height
-
+  -- UI and Gameplay Setup
   local upNextRules = Rules.new()
-  upNextRules:addX(Plan.pixel(0))
+    :addX(Plan.pixel(0))
     :addY(Plan.center())
-    :addWidth(Plan.pixel(2 * cellWidth))
-    :addHeight(Plan.pixel(9 * cellHeight))
+    :addWidth(Plan.pixel(self.cellWidth * 2))
+    :addHeight(Plan.pixel(self.cellHeight * 9))
 
   self.upNext = UpNext:new(upNextRules, self.bag)
 
   local gridRules = Rules.new()
-  gridRules:addX(Plan.pixel(upNextRules:getWidth().value + cellWidth / 2))
+    :addX(Plan.pixel(upNextRules:getWidth().value + self.cellWidth / 2))
     :addY(Plan.center())
-    :addWidth(Plan.pixel(cellWidth * gridWidth))
-    :addHeight(Plan.pixel(cellHeight * gridHeight))
+    :addWidth(Plan.pixel(self.cellWidth * self.gridWidth))
+    :addHeight(Plan.pixel(self.cellHeight * self.gridHeight))
 
-  self.grid = Grid:new(gridRules, gridWidth, gridHeight, cellWidth, cellHeight)
+  self.grid = Grid:new(
+    gridRules,
+    self.gridWidth,
+    self.gridHeight,
+    self.cellWidth,
+    self.cellHeight
+  )
 
   local scoreboardRules = Rules.new()
-    :addX(Plan.max(4 * cellWidth))
+    :addX(Plan.max(self.cellWidth * 4))
     :addY(Plan.center())
-    :addWidth(Plan.pixel(4 * cellWidth))
+    :addWidth(Plan.pixel(self.cellWidth * 4))
     :addHeight(gridRules:getHeight():clone())
 
   self.scoreboard = Scoreboard:new(scoreboardRules)
+  local boardWidth = upNextRules:getWidth().value
+    + gridRules:getWidth().value
+    + scoreboardRules:getWidth().value
+    + self.cellWidth
 
   local boardRules = Rules.new()
-  boardRules:addX(Plan.center())
+    :addX(Plan.center())
     :addY(Plan.center())
-    :addWidth(Plan.pixel(upNextRules:getWidth().value + gridRules:getWidth().value + scoreboardRules:getWidth().value + cellWidth))
-    :addHeight(Plan.pixel(cellHeight * gridHeight))
+    :addWidth(Plan.pixel(boardWidth))
+    :addHeight(Plan.pixel(self.cellHeight * self.gridHeight))
 
   local board = Container:new(boardRules)
   board:addChild(self.upNext)
   board:addChild(self.grid)
   board:addChild(self.scoreboard)
+
   self.ui:addChild(board)
-  -- Cursor
+
+  -- Gameplay
   self.cursor = Cursor.new(self.grid.x, self.grid.x + self.grid.w)
-  -- Dictionary
-  self.dictionary:load("assets/dictionary.txt")
-  -- Sound
-  self.soundBank:load("assets/placement.mp3", "tile_placement")
-  self.soundBank:load("assets/word.mp3", "word_found")
-  self.soundBank:load("assets/gather.mp3", "tile_gathered")
+  self.dictionary:load("assets/common.txt")
+
+  -- Managers
+  self.soundManager:load("assets/placement.mp3", "tile.placement")
+  self.soundManager:load("assets/gather.mp3", "tile.gathered")
+  self.soundManager:load("assets/word.mp3", "word.found")
+
+  self.eventQueue:register("tile.placement", self.soundManager)
+  self.eventQueue:register("word.found", self.soundManager)
+  self.eventQueue:register("tile.gathered", self.soundManager)
+
+  self.eventQueue:register("tile.nextGroup", self.upNext)
 end
 
+-- Local Helpers
+
+-- Maps each element in `coll` to `fn(element)`. Returns a new map
 local function map(fn, coll)
   local result = {}
   for i, elem in ipairs(coll) do
@@ -104,15 +133,20 @@ local function map(fn, coll)
   return result
 end
 
+-- Appends tables to one another. This is an inplace operation
 local function append(a, b, ...)
   for i, elem in ipairs(b) do
     table.insert(a, elem)
   end
+
   if ... then
     return append(a, ...)
   end
+
   return a
 end
+
+-- Mapping functions
 
 local function getLetter(w)
   return w.letter
@@ -122,6 +156,84 @@ local function getIndex(w)
   return w.index
 end
 
+-- Places the given coordinates into the placement buffer.
+-- Buffer is cleared at the beginning of every update, use this to queue
+-- a placement to be considered for word finding actions.
+function GameScene:addPlacement(x, y)
+  table.insert(self.placementBuffer, { x = x, y = y})
+end
+
+-- Drops any hovering tiles to the closest free tile below that is either
+-- atop another tile, or the bottom of the grid. This action is asynchronous,
+-- and will complete at an unknown time.
+function GameScene:fall()
+  for x = 0, self.grid.xCells do
+    for y = 0, self.grid.yCells - 2 do -- Don't check the bottom row
+      -- If we're a tile, and there's nothing below us
+      if self.grid:check(x, y) and not self.grid:check(x, y + 1) then
+        -- Find the destination cell
+        local goalY = y + 1
+        while not self.grid:check(x, goalY + 1)
+          and not self.grid:reserved(x, goalY + 1)
+          and (goalY + 1 < self.grid.yCells) do
+            -- While there's free space below us, inch the goal a little further
+            goalY = goalY + 1
+          end
+        self.grid:fallTo(x, y, x, goalY)
+        -- NOTE: If the placement is getting all weird, then this is what is
+        -- causing it
+        self:addPlacement(x, goalY)
+      end
+    end
+  end
+end
+
+-- Drops the current TileGroup down one, placing the tiles if it should.
+-- Handles cases where only half the tile was set.
+--
+-- Note: this does not trigger a word find action.
+--
+-- Note: TileGroups do not live in the grid. This can cause issues if not
+-- careful!
+function GameScene:dropTile()
+  local inBounds = self.currentTile.y + 3 <= self.grid.yCells
+  local nothingBelow = not self.grid:anythingBelow(self.currentTile)
+  -- If we're still in the grid, and there's nothing below us, then we can
+  -- safely drop one tile lower.
+  if inBounds and nothingBelow then
+    self.currentTile:drop()
+  else
+    -- Otherwise, we must have something below us, lets try set the tile.
+    local wasHalfSet = self.grid:setGroup(self.currentTile)
+    self.eventQueue:fire(
+      "tile.placement",
+      { placed = self.currentTile, wasHalfSet = wasHalfSet }
+    )
+    -- Pass to the buffer where to look next check
+    -- If the currentTile is the left half, then we have just set the right.
+    if (wasHalfSet and self.currentTile.isLeftHalf) or not wasHalfSet then
+      self:addPlacement(self.currentTile.x + 1, self.currentTile.y)
+      self:addPlacement(self.currentTile.x + 1, self.currentTile.y + 1)
+    end
+    -- If the currentTile is not the left half, then we have just set the left.
+    if (wasHalfSet and not self.currentTile.isLeftHalf) or not wasHalfSet then
+      self:addPlacement(self.currentTile.x, self.currentTile.y)
+      self:addPlacement(self.currentTile.x, self.currentTile.y + 1)
+    end
+
+    if not wasHalfSet then
+      -- If we set everything, pop the new tile off of the bag
+      self.eventQueue:fire("tile.nextGroup", self.currentTile)
+      self.currentTile = self.bag:get()
+    else
+      -- Continue to drop the half that didn't collide
+      self.currentTile:drop()
+    end
+  end
+end
+
+-- Finds the longest valid word in the list of provided words.
+-- Returns nil if none found, otherwise the winning word.
 function GameScene:__longestValidWord(words)
   local result = ""
   for i, word in ipairs(words) do
@@ -137,7 +249,9 @@ function GameScene:__longestValidWord(words)
   end
 end
 
-function GameScene:__findMatchRanks(index, direction, first, last)
+-- Returns a table containing the ranks of the found tiles in order.
+-- Used primarily for the display on the right hand side.
+function GameScene:__findRanksForMatch(index, direction, first, last)
   local ranks = {}
   for i = first, last do
     if direction == "x" then
@@ -150,16 +264,28 @@ function GameScene:__findMatchRanks(index, direction, first, last)
   return ranks
 end
 
+-- Attempts to find words from the given letters. Returns a list of `Match`
+-- tables which provide information on what was found.
 function GameScene:__findWords(letters, index, direction)
   local result = {}
   for i, list in ipairs(letters) do
+    -- Build a string out of the letters found
     local word = table.concat(map(getLetter, list))
+    -- Make sure to hold onto the indicies though, so we we know what to clear
     local indicies = map(getIndex, list)
+    -- Don't bother if it's < minWordLength
     if #word > self.minWordLength then
+      -- Find the longest valid word, then mark its position
       local bestWord = self:__longestValidWord(String.allSubstrings(word))
       if bestWord then
-        print(bestWord)
+        print("Longest valid word: ", bestWord)
         local first, last = string.find(word, bestWord)
+        local ranks = self:__findRanksForMatch(
+          index,
+          direction,
+          indicies[first],
+          indicies[last]
+        )
         table.insert(
           result,
           Match.new(
@@ -168,14 +294,8 @@ function GameScene:__findWords(letters, index, direction)
             direction,
             indicies[first],
             indicies[last],
-            self:__findMatchRanks(
-              index,
-              direction,
-              indicies[first],
-              indicies[last]
-            )
-          )
-        )
+            ranks
+        ))
       end
     end
   end
@@ -192,7 +312,7 @@ end
 
 function GameScene:___alreadyFound(match)
   print("checking match for", match.word)
-  for i, m in ipairs(self.wordMatches) do
+  for i, m in ipairs(self.matchesBuffer) do
     if m:equals(match) then
       print("it has already been found")
       return true
@@ -215,56 +335,32 @@ function GameScene:__markTiles(results)
           self.grid:mark(result.index, y)
         end
       end
-      table.insert(self.wordMatches, result)
-      self.soundBank:play("word_found")
+      table.insert(self.matchesBuffer, result)
+      self.eventQueue:fire("word.found")
     end
   end
 end
 
-function GameScene:findWords(wasHalfSet)
-  if wasHalfSet then
-    local columnWords = {}
-    -- If the right was just set, then only check right column
-    if self.currentTile.isLeftHalf then
-      columnWords = self:__findWordsColumn(self.currentTile.x + 1)
-    else
-      columnWords = self:__findWordsColumn(self.currentTile.x)
-    end
-    local topRow = self:__findWordsRow(self.currentTile.y)
-    local bottomRow = self:__findWordsRow(self.currentTile.y + 1)
-    self:__markTiles(append(columnWords, topRow, bottomRow))
-    -- bail out
-    return
+-- Performs a check on all locations in the placement buffer to see if any words
+-- were found. Marks those tiles for removal on next cursor pass.
+function GameScene:findWords()
+  local words = {}
+  for i, position in ipairs(self.placementBuffer) do
+    append(
+      words,
+      self:__findWordsRow(position.y),
+      self:__findWordsColumn(position.x)
+    )
   end
-  -- Check all
-  local leftWords = self:__findWordsColumn(self.currentTile.x)
-  local rightWords =self:__findWordsColumn(self.currentTile.x + 1)
-  local topWords = self:__findWordsRow(self.currentTile.y)
-  local bottomWords = self:__findWordsRow(self.currentTile.y + 1)
-  self:__markTiles(append(leftWords, rightWords, topWords, bottomWords))
-end
-
-function GameScene:dropTile()
-  local inBounds = self.currentTile.y + 3 <= self.grid.yCells
-  local nothingBelow = not self.grid:anythingBelow(self.currentTile)
-  if inBounds and nothingBelow then
-    self.currentTile:drop()
-  else
-    local wasHalfSet = self.grid:setGroup(self.currentTile)
-    self.soundBank:play("tile_placement")
-    self:findWords(wasHalfSet)
-    if not wasHalfSet then
-      self.currentTile = self.bag:get()
-      self.upNext:shift()
-    else
-      self.currentTile:drop()
-    end
+  -- Only attempt to mark if we actually found anything.
+  if #words > 0 then
+    self:__markTiles(words)
   end
 end
 
 function GameScene:__removeMatch(x, y)
   local toRemove = {}
-  for i, match in ipairs(self.wordMatches) do
+  for i, match in ipairs(self.matchesBuffer) do
     match:remove(x, y)
     if match:isCleared() then
       print("Removing the last letter for ", match.word)
@@ -274,7 +370,7 @@ function GameScene:__removeMatch(x, y)
   end
 
   for i, index in ipairs(toRemove) do
-    table.remove(self.wordMatches, index)
+    table.remove(self.matchesBuffer, index)
   end
 end
 
@@ -284,45 +380,20 @@ function GameScene:checkCursor()
     return
   end
   self.lastCheckedColumn = column
-
+  -- FIXME: Swap out to use event queue
   for y = 0, self.grid.yCells do
     if self.grid:check(column, y) and self.grid:get(column, y).marked then
       self.grid:get(column, y):gather()
       local grid = self.grid
-      local soundbank = self.soundBank
+      local eventQueue = self.eventQueue
       local scoreboard = self.scoreboard
       local game = self
       Tick.delay(function()
         game:__removeMatch(column, y)
         scoreboard:send(grid:get(column, y))
         grid:remove(column, y)
-        soundbank:play("tile_gathered", true)
-      end, 0.4)
-    end
-  end
-end
-
-function GameScene:onFallComplete(x, y)
-  local game = self
-  return function()
-    local row = game:__findWordsRow(y)
-    local column = game:__findWordsColumn(x)
-    game:__markTiles(append(row, column))
-  end
-end
-
-function GameScene:fall()
-  for x = 0, self.grid.xCells do
-    for y = 0, self.grid.yCells - 2 do
-      if self.grid:check(x, y) and not self.grid:check(x, y + 1) then
-        local goalY = y + 1
-        while not self.grid:check(x, goalY + 1)
-          and not self.grid:reserved(x, goalY + 1)
-          and (goalY + 1 < self.grid.yCells) do
-          goalY = goalY + 1
-        end
-        self.grid:fallTo(x, y, x, goalY, self:onFallComplete(x, goalY))
-      end
+        eventQueue:fire("tile.gathered")
+      end, 0.1)
     end
   end
 end
@@ -331,24 +402,37 @@ function GameScene:update(dt)
   if self.paused then
     dt = 0
   end
-  self.ui:update(dt)
-  self.cursor:update(dt)
+  -- Clear the placement buffer. This tracks what tiles have been placed
+  -- this update.
+  self.placementBuffer = {}
 
+  self.ui:update(dt)
+
+  -- Game Actions
+  -- Drop any hovering tiles
+  self:fall()
+
+  -- Drop the group
   self.dropTimer = self.dropTimer - dt
   if self.dropTimer <= 0 then
     self.dropTimer = self.dropTimerMax
     self:dropTile()
   end
+  -- Check for any new words
+  self:findWords()
 
   if love.keyboard.isDown("space") then
     self.dropTimer = self.dropTimer - (dt * self.dropSpeed)
   end
 
-  self.currentTile:update(dt)
-
+  -- Shift the cursor and check
   self:checkCursor()
-  self:fall()
+  self.cursor:update(dt)
 
+  -- Check the queue for things to do
+  self.eventQueue:update(dt)
+
+  -- Update grid for visual effects
   self.grid:update(dt)
 end
 
@@ -394,16 +478,11 @@ function GameScene:draw()
   love.graphics.push("all")
   self.ui:draw()
   self.cursor:draw()
-  -- TODO: The origins seem off for this one :thonk:
+
   self.currentTile:draw(
     self.grid.x + Tile.Width / 2,
     self.grid.y + Tile.Height / 2
   )
-
-  love.graphics.rectangle("line", self.upNext.x, self.upNext.y, self.upNext.w, self.upNext.h)
-  love.graphics.rectangle("line", self.grid.x, self.grid.y, self.grid.w, self.grid.h)
-  love.graphics.rectangle("line", self.scoreboard.x, self.scoreboard.y, self.scoreboard.w, self.scoreboard.h)
-
   love.graphics.pop()
 end
 
