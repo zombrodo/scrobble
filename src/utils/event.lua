@@ -20,7 +20,6 @@ function EventQueue:register(action, listener)
 end
 
 function EventQueue:fire(action, payload)
-  print("Queueing: ", action)
   self.eventQueue:enqueue({ action = action, payload = payload})
 end
 
@@ -29,7 +28,6 @@ function EventQueue:update(dt)
   while not self.eventQueue:isEmpty()
     and (love.timer.getTime() - consumeStart) < self.maxTimeSpent do
     local event = self.eventQueue:dequeue()
-    print(event.action)
     if self.listeners[event.action] then
       for i, handler in ipairs(self.listeners[event.action]) do
         handler:receive(event.action, event.payload)

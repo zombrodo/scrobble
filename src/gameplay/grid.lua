@@ -180,8 +180,14 @@ function Grid:detonate(x, y, rankType)
 end
 
 function Grid:__getIndexedTile(x, y, index)
-  if self:check(x, y) then
+  -- NOTE: Keep an eye on this one - it's preventing marked tiles for being
+  -- considered in new words. Do we want this to happen?
+  if self:check(x, y) and not self:get(x, y).marked then
     local tile = self:get(x, y)
+    -- NOTE: This is checking reserved tiles, unsure if we want, but eh
+    if not tile and self:reserved(x, y) then
+      tile = self:getReserved(x, y)
+    end
     return {
       isSpecial = tile.letter == Letter.Special,
       letter = Letter.toChar(tile.letter),
@@ -240,6 +246,14 @@ function Grid:reserved(x, y)
     end
   end
   return false
+end
+
+function Grid:getReserved(x, y)
+  for i, fallingTile in ipairs(self.fallingTiles) do
+    if y == fallingTile.goal then
+      return fallingTile.tile
+    end
+  end
 end
 
 function Grid:finishFalling(y)

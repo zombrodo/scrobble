@@ -271,6 +271,7 @@ function GameScene:__findWords(letters, index, direction)
   for i, list in ipairs(letters) do
     -- Build a string out of the letters found
     local word = table.concat(map(getLetter, list))
+    print("checking for words in ", word)
     -- Make sure to hold onto the indicies though, so we we know what to clear
     local indicies = map(getIndex, list)
     -- Don't bother if it's < minWordLength
@@ -299,6 +300,7 @@ function GameScene:__findWords(letters, index, direction)
       end
     end
   end
+  print("check finished")
   return result
 end
 
