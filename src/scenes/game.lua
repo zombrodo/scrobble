@@ -120,6 +120,9 @@ function GameScene:enter()
   self.eventQueue:register("tile.gathered", self.soundManager)
 
   self.eventQueue:register("tile.nextGroup", self.upNext)
+
+  self.eventQueue:register("cursor.end", self.scoreboard)
+  self.eventQueue:register("tile.gathered", self.scoreboard)
 end
 
 -- Local Helpers
@@ -430,6 +433,11 @@ function GameScene:update(dt)
   -- Shift the cursor and check
   self:checkCursor()
   self.cursor:update(dt)
+
+  if self.cursor.currentX == self.cursor.startX then
+    print("hello?")
+    self.eventQueue:fire("cursor.end")
+  end
 
   -- Check the queue for things to do
   self.eventQueue:update(dt)

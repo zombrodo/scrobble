@@ -30,6 +30,9 @@ function Scores:new(rules)
   scores.longestText = love.graphics.newText(Scores.heading, "longest word:")
   scores.highScoreText = love.graphics.newText(Scores.heading, "high score:")
 
+  scores.comboTilesGathered = 0
+  scores.comboAmount = 1
+
   return scores
 end
 
@@ -43,7 +46,7 @@ function Scores:refresh()
 end
 
 function Scores:send(tile)
-  self.score = self.score + TileRank.score(tile.rank)
+  self.score = self.score + (TileRank.score(tile.rank) * self.comboAmount)
 end
 
 function Scores:addWord(match)
@@ -52,6 +55,24 @@ function Scores:addWord(match)
   if #match.word > self.longestLength then
     self.longestLength = #match.word
     self.longestWord = match.word
+  end
+end
+
+function Scores:receive(action, payload)
+  if action == "cursor.end" then
+    if self.comboTilesGathered > 5 then
+      print("Adding 1 to Combo")
+      self.comboAmount = self.comboAmount + 1
+    else
+      print("C-c-combo breaker")
+      self.comboAmount = 1
+    end
+
+    self.comboTilesGathered = 0
+  end
+
+  if action == "tile.gathered" then
+    self.comboTilesGathered = self.comboTilesGathered + 1
   end
 end
 
@@ -80,7 +101,7 @@ function Scores:draw()
   -- Combo
   love.graphics.draw(self.comboText, 0, currentY + 5)
   currentY = currentY + Scores.heading:getHeight() + 5
-  love.graphics.print(pad(0, 2), Scores.value, 5, currentY + 3)
+  love.graphics.print("x" .. self.comboAmount, Scores.value, 5, currentY + 3)
   currentY = currentY + Scores.value:getHeight() + 3
   -- Previous Cleared
   love.graphics.draw(self.wordsText, 0, currentY + 5)
