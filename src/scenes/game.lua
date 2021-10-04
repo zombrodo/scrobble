@@ -7,6 +7,7 @@ local Bag = require "src.gameplay.bag"
 local Grid = require "src.gameplay.grid"
 local Cursor = require "src.gameplay.cursor"
 local Match = require "src.gameplay.match"
+local Effect = require "src.gameplay.effect"
 
 local Tile = require "src.letters.tile"
 
@@ -15,6 +16,7 @@ local Scoreboard = require "src.ui.scores"
 
 local EventQueue = require "src.utils.event"
 local String = require "src.utils.string"
+local Fonts = require "src.utils.fonts"
 
 local SoundManager = require "src.handlers.sound"
 
@@ -54,6 +56,7 @@ function GameScene.new()
 
   -- Managers
   self.soundManager = SoundManager.new()
+  self.effectManager = Effect.new(self)
   return self
 end
 
@@ -123,6 +126,8 @@ function GameScene:enter()
 
   self.eventQueue:register("cursor.end", self.scoreboard)
   self.eventQueue:register("tile.gathered", self.scoreboard)
+
+  self.eventQueue:register("effect.spawn", self.effectManager)
 end
 
 -- Local Helpers
@@ -235,21 +240,89 @@ function GameScene:dropTile()
   end
 end
 
--- Finds the longest valid word in the list of provided words.
--- Returns nil if none found, otherwise the winning word.
-function GameScene:__longestValidWord(words)
-  local result = ""
-  for i, word in ipairs(words) do
-    if self.dictionary:check(word) then
-      if #word > #result then
-        result = word
+function GameScene:__findOverlaps(results)
+  -- Sort the list of items, so that the `first` is in order, left to right
+  table.intertionSort(results, function(a, b)
+    return a.first < b.first
+  end)
+
+  print("Found", #results, "words")
+
+  for i, result in ipairs(results) do
+    print(result.word)
+  end
+
+  local words = {}
+  local collisions = {}
+  local currentCollisions = {}
+
+  local currentOpen = nil
+  for i, result in ipairs(results) do
+    if not currentOpen then
+      currentOpen = result
+    else
+      -- standalone
+      if result.first >= currentOpen.last then
+        if #currentCollisions == 0 then
+          print("Standalone Word: ", currentOpen.word)
+          table.insert(words, currentOpen)
+        else
+          print("Moving onto next collision")
+          table.insert(collisions, currentCollisions)
+          currentCollisions = {}
+        end
+          currentOpen = result
       end
+
+      if result.first <= currentOpen.last and result.last >= currentOpen.last then
+        if #currentCollisions == 0 then
+          print("Encountered a collision, beginning collection, starting with: ", currentOpen.word)
+          table.insert(currentCollisions, currentOpen)
+        end
+        print("Adding word to collection: ", result.word)
+        table.insert(currentCollisions, result)
+        currentOpen = result
+      end
+      -- crossover
     end
   end
 
-  if result ~= "" then
-    return result
+  if #collisions > 0 then
+    for i, group in ipairs(collisions) do
+      print("Resolving collions for ", table.concat(group, ", "))
+      local longestResult = { word = "" }
+      for j, result in ipairs(group) do
+        -- TODO: Handle highest score here
+        print(result.word, #result.word, longestResult.word, #longestResult.word)
+        if #result.word > #longestResult.word then
+          print("Resolved collision with: ", result.word)
+          longestResult = result
+        end
+      end
+      table.insert(words, longestResult)
+    end
   end
+
+  table.insert(words, currentOpen)
+
+  return words
+end
+
+-- Finds the longest valid word in the list of provided words.
+-- Returns nil if none found, otherwise the winning word.
+function GameScene:__findScoringWords(words, source, indicies)
+  local result = {}
+  for i, word in ipairs(words) do
+    if #word >= self.minWordLength and self.dictionary:check(word) then
+      local first, last = string.find(source, word)
+      table.insert(
+        result,
+        { word = word, first = indicies[first], last = indicies[last]}
+      )
+    end
+  end
+
+  return self:__findOverlaps(result)
 end
 
 -- Returns a table containing the ranks of the found tiles in order.
@@ -274,36 +347,36 @@ function GameScene:__findWords(letters, index, direction)
   for i, list in ipairs(letters) do
     -- Build a string out of the letters found
     local word = table.concat(map(getLetter, list))
-    print("checking for words in ", word)
     -- Make sure to hold onto the indicies though, so we we know what to clear
     local indicies = map(getIndex, list)
     -- Don't bother if it's < minWordLength
     if #word > self.minWordLength then
       -- Find the longest valid word, then mark its position
-      local bestWord = self:__longestValidWord(String.allSubstrings(word))
-      if bestWord then
-        print("Longest valid word: ", bestWord)
-        local first, last = string.find(word, bestWord)
-        local ranks = self:__findRanksForMatch(
-          index,
-          direction,
-          indicies[first],
-          indicies[last]
-        )
-        table.insert(
-          result,
-          Match.new(
-            bestWord,
+      local bestWords = self:__findScoringWords(String.allSubstrings(word), word, indicies)
+      if #bestWords > 0 then
+        for j, best in ipairs(bestWords) do
+          -- print("Longest valid word: ", bestWord)
+          local first, last = string.find(word, best.word)
+          local ranks = self:__findRanksForMatch(
             index,
             direction,
             indicies[first],
-            indicies[last],
-            ranks
-        ))
+            indicies[last]
+          )
+          table.insert(
+            result,
+            Match.new(
+              best.word,
+              index,
+              direction,
+              indicies[first],
+              indicies[last],
+              ranks
+          ))
+        end
       end
     end
   end
-  print("check finished")
   return result
 end
 
@@ -316,14 +389,11 @@ function GameScene:__findWordsColumn(x)
 end
 
 function GameScene:___alreadyFound(match)
-  print("checking match for", match.word)
   for i, m in ipairs(self.matchesBuffer) do
     if m:equals(match) then
-      print("it has already been found")
       return true
     end
   end
-  print("it hasn't been found")
   return false
 end
 
@@ -368,7 +438,6 @@ function GameScene:__removeMatch(x, y)
   for i, match in ipairs(self.matchesBuffer) do
     match:remove(x, y)
     if match:isCleared() then
-      print("Removing the last letter for ", match.word)
       self.scoreboard:addWord(match)
       table.insert(toRemove, i)
     end
@@ -412,6 +481,7 @@ function GameScene:update(dt)
   self.placementBuffer = {}
 
   self.ui:update(dt)
+  self.effectManager:update(dt)
 
   -- Game Actions
   -- Drop any hovering tiles
@@ -435,7 +505,6 @@ function GameScene:update(dt)
   self.cursor:update(dt)
 
   if self.cursor.currentX == self.cursor.startX then
-    print("hello?")
     self.eventQueue:fire("cursor.end")
   end
 
@@ -444,6 +513,12 @@ function GameScene:update(dt)
 
   -- Update grid for visual effects
   self.grid:update(dt)
+
+  -- Potentially spawn an effect?
+  if love.math.random() < 0.05  and self.effectManager.canSpawn then
+    print("Spawning Effect")
+    self.eventQueue:fire("effect.spawn")
+  end
 end
 
 function GameScene:__moveRight()
@@ -486,7 +561,13 @@ end
 
 function GameScene:draw()
   love.graphics.push("all")
+  self.effectManager:draw() -- TODO: Maybe good for a Container instead
+
   self.ui:draw()
+  -- TODO: shift this somewhere else
+  if self.effectManager:isEffectRunning() then
+    love.graphics.print(self.effectManager:effectText(), Fonts.wakuwaku(16), self.grid.x, self.grid.y + self.grid.h)
+  end
   self.cursor:draw()
 
   self.currentTile:draw(

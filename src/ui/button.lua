@@ -20,6 +20,8 @@ function Button:new(rules, text, onClick)
   button.shader:send("extraRandom", love.math.random())
   button.scale = 1
   button.timeElapsed = 0
+  button.audioClick = love.audio.newSource("assets/button_click.mp3", "static")
+  button.isHovered = false
   return button
 end
 
@@ -28,8 +30,13 @@ function Button:update(dt)
   local mouseX, mouseY = love.mouse.getPosition()
   if Math.inBounds(mouseX, mouseY, self.x, self.y, self.w, self.h) then
     self.scale = 1.3
+    if not self.isHovered then
+      self.audioClick:play()
+      self.isHovered = true
+    end
   else
     self.scale = 1
+    self.isHovered = false
   end
   self.timeElapsed = self.timeElapsed + dt
   self.shader:send("timeElapsed", self.timeElapsed)

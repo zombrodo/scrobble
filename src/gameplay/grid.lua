@@ -180,9 +180,7 @@ function Grid:detonate(x, y, rankType)
 end
 
 function Grid:__getIndexedTile(x, y, index)
-  -- NOTE: Keep an eye on this one - it's preventing marked tiles for being
-  -- considered in new words. Do we want this to happen?
-  if self:check(x, y) and not self:get(x, y).marked then
+  if self:check(x, y) then
     local tile = self:get(x, y)
     -- NOTE: This is checking reserved tiles, unsure if we want, but eh
     if not tile and self:reserved(x, y) then
@@ -194,6 +192,14 @@ function Grid:__getIndexedTile(x, y, index)
       index = index
     }
   end
+end
+
+local function map(fn, coll)
+  local result = {}
+  for i, elem in ipairs(coll) do
+    table.insert(result, fn(elem))
+  end
+  return result
 end
 
 function Grid:getRow(y)
@@ -214,6 +220,9 @@ function Grid:getRow(y)
   if #currentWord > 0 then
     table.insert(result, currentWord)
   end
+
+  print("Row: ", y, table.concat(map(function(r) return r.letter end, result)))
+
   return result
 end
 
@@ -235,6 +244,8 @@ function Grid:getColumn(x)
   if #currentWord > 0 then
     table.insert(result, currentWord)
   end
+
+  print("Column: ", x, table.concat(map(function(r) return r.letter end, result)))
 
   return result
 end

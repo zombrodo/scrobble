@@ -43,8 +43,8 @@ local function spawnSpecialTile()
   return love.math.random() > 0.95
 end
 
-function Bag:nextTile()
-  if spawnSpecialTile() then
+function Bag:nextTile(dontSpawnSpecial)
+  if not dontSpawnSpecial and spawnSpecialTile() then
     return Letter.Special
   end
 

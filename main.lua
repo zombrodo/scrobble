@@ -7,6 +7,8 @@ DEBUG_MODE = true
 
 Tick = require "lib.tick"
 Flux = require "lib.flux"
+-- Shunt sorting algorithms into the table scope.
+require "lib.sort":export()
 
 local Roomy = require "lib.roomy"
 
@@ -18,8 +20,10 @@ local Colour = require "src.utils.colour"
 SceneManager = nil
 
 local mainCanvas
+local randomSeed = os.time(os.date("!*t"))
 
 function love.load()
+  love.math.setRandomSeed(randomSeed)
   mainCanvas = love.graphics.newCanvas(GAME_WIDTH, GAME_HEIGHT)
   SceneManager = Roomy.new()
   SceneManager:hook({exclude = { "draw" }})
@@ -58,5 +62,12 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.print('FPS: ' .. love.timer.getFPS(), 0, 0)
     love.graphics.print('Memory: ' .. math.floor(collectgarbage 'count') .. ' kb', 0, 16)
+    love.graphics.print('Seed: ' .. randomSeed, 0, 32)
+  end
+end
+
+function love.keypressed(key)
+  if key == "f5" then
+    love.event.quit("restart")
   end
 end

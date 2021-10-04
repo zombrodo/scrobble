@@ -61,10 +61,8 @@ end
 function Scores:receive(action, payload)
   if action == "cursor.end" then
     if self.comboTilesGathered > 5 then
-      print("Adding 1 to Combo")
       self.comboAmount = self.comboAmount + 1
     else
-      print("C-c-combo breaker")
       self.comboAmount = 1
     end
 

@@ -80,7 +80,7 @@ function TileGroup:tiles()
   return result
 end
 
-function TileGroup:draw(x, y, overrideX, overrideY)
+function TileGroup:draw(x, y, overrideX, overrideY, scaleOverride)
   -- TODO: fix this, so we can draw irrespective of whether we're in the  grid
   -- or not.
   local localX = overrideX or self.x
@@ -88,13 +88,13 @@ function TileGroup:draw(x, y, overrideX, overrideY)
 
   love.graphics.push("all")
   if not self.isHalf or (self.isHalf and self.isLeftHalf) then
-    self.tile00:draw(x + (localX * self.cellWidth), y + (localY * self.cellHeight))
-    self.tile01:draw(x + (localX * self.cellWidth), y + ((localY + 1) * self.cellHeight))
+    self.tile00:draw(x + (localX * self.cellWidth), y + (localY * self.cellHeight), scaleOverride)
+    self.tile01:draw(x + (localX * self.cellWidth), y + ((localY + 1) * self.cellHeight), scaleOverride)
   end
 
   if not self.isHalf or (self.isHalf and not self.isLeftHalf) then
-    self.tile10:draw(x + ((localX + 1) * self.cellWidth), y + (localY * self.cellHeight))
-    self.tile11:draw(x + ((localX + 1) * self.cellWidth), y + ((localY + 1) * self.cellHeight))
+    self.tile10:draw(x + ((localX + 1) * self.cellWidth), y + (localY * self.cellHeight), scaleOverride)
+    self.tile11:draw(x + ((localX + 1) * self.cellWidth), y + ((localY + 1) * self.cellHeight), scaleOverride)
   end
 
   love.graphics.pop()

@@ -52,8 +52,10 @@ function Tile:update(dt)
   self.lineBoil:send("timeElapsed", self.elapsed)
 end
 
-function Tile:draw(x, y)
+function Tile:draw(x, y, scaleOverride)
   love.graphics.push("all")
+
+  local scale = scaleOverride or self.scale
 
   self.lineBoil:attach()
   -- Tile
@@ -62,8 +64,8 @@ function Tile:draw(x, y)
     x,
     y,
     0,
-    self.scale,
-    self.scale,
+    scale,
+    scale,
     self.sprite:getWidth() / 2,
     self.sprite:getHeight() / 2
   )
